@@ -26,6 +26,8 @@ For now, we only use Eigen and OpenCV.
 
 After installing these two libraries, you should be able to build the project by using Cmake.
 
+**Before Building:** Dont forget to change the path to your vcpkg in [`CmakeLists.txt`](CMakeLists.txt) at ***Line 4***.
+
 ## Project structure
 The project folder should look like as following.
 ```
@@ -33,6 +35,7 @@ The project folder should look like as following.
 ├── Data
 │   └── Middlebury_2014
 │       └── ...
+├── Build
 ├── CMakeLists.txt
 ├── main.cpp
 ├── SURF.cpp
