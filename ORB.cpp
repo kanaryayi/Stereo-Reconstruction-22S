@@ -1,12 +1,12 @@
-#include "SURF.h"
+#include "ORB.h"
 
-SURFDetector::SURFDetector(int minHessian, bool filtering) {
-   detector = cv::xfeatures2d::SURF::create(minHessian);
-
+ORBDetector::ORBDetector(bool filtering) {
+   detector = cv::ORB::create();
+    
    m_filtering = filtering;
 }
 
-std::vector<cv::DMatch> SURFDetector::findCorrespondences(std::string srcImage1Path, std::string srcImage2Path) {
+std::vector<cv::DMatch> ORBDetector::findCorrespondences(std::string srcImage1Path, std::string srcImage2Path) {
     cv::Mat srcImage1 = cv::imread(srcImage1Path);
     int image1W = srcImage1.cols;
     int image1H = srcImage1.rows;
@@ -16,10 +16,10 @@ std::vector<cv::DMatch> SURFDetector::findCorrespondences(std::string srcImage1P
     int image2H = srcImage2.rows;
 
     if (srcImage1.empty() || srcImage2.empty()) {
-        throw std::exception("SURFDectector >> Fail to Load the Image");
+        throw std::exception("ORBDetector >> Fail to Load the Image");
     }
     else {
-        std::cerr << "SURFDectector >> Images successfully loaded" << std::endl;
+        std::cerr << "ORBDetector >> Images successfully loaded" << std::endl;
         cv::resize(srcImage1, srcImage1, cv::Size(image1W * 0.4, image1H * 0.4), 0, 0, cv::INTER_LINEAR);
         cv::resize(srcImage2, srcImage2, cv::Size(image2W * 0.4, image2H * 0.4), 0, 0, cv::INTER_LINEAR);
     }
@@ -27,11 +27,23 @@ std::vector<cv::DMatch> SURFDetector::findCorrespondences(std::string srcImage1P
     std::vector<cv::KeyPoint>keypoints1, keypoints2;
     cv::Mat descriptors1, descriptors2;
 
-    detector.get()->detectAndCompute(srcImage1, cv::noArray(), keypoints1, descriptors1);
-    detector.get()->detectAndCompute(srcImage2, cv::noArray(), keypoints2, descriptors2);
+    detector.get()->detect(srcImage1, keypoints1);
+    detector.get()->detect(srcImage2, keypoints2);
+
+    detector.get()->compute(srcImage1, keypoints1, descriptors1);
+    detector.get()->compute(srcImage2, keypoints2, descriptors2);
+
+    if (descriptors1.empty())
+        cv::error(0, "MatchFinder", "1st descriptor empty", __FILE__, __LINE__);
+    if (descriptors2.empty())
+        cv::error(0, "MatchFinder", "2nd descriptor empty", __FILE__, __LINE__);
+
+    descriptors1.convertTo(descriptors1, CV_32F);
+    descriptors2.convertTo(descriptors2, CV_32F);
 
     std::vector<cv::DMatch>matches;
     cv::FlannBasedMatcher matcher;
+    std::cout << "OKOK" << std::endl;
     matcher.match(descriptors1, descriptors2, matches);
 
     if (m_filtering) {
@@ -65,12 +77,12 @@ std::vector<cv::DMatch> SURFDetector::findCorrespondences(std::string srcImage1P
     cv::Mat matchImage;
     cv::drawMatches(srcImage1, keypoints1, srcImage2, keypoints2, matches, matchImage, cv::Scalar::all(-1), cv::Scalar(-1), std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
 
-    cv::namedWindow("SURF_Correspondences", cv::WINDOW_AUTOSIZE);
-    cv::imshow("SURF_Correspondences", matchImage);
+    cv::namedWindow("ORB_Correspondences", cv::WINDOW_AUTOSIZE);
+    cv::imshow("ORB_Correspondences", matchImage);
 
     for (int i = 0; i < (int)matches.size(); i++)
     {
-        printf("SURFDectector>> Good Match [%d] Keypoint 1: %d = = = Keypoint 2: %d \n", i, matches[i].queryIdx, matches[i].trainIdx);
+        printf("ORBDetector>> Good Match [%d] Keypoint 1: %d = = = Keypoint 2: %d \n", i, matches[i].queryIdx, matches[i].trainIdx);
     }
     
     return matches;

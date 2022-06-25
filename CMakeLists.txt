@@ -13,10 +13,12 @@ FIND_PACKAGE(OpenCV REQUIRED)
 
 SET(HEADERS
     SURF.h
+    ORB.h
 )
 
 SET(SOURCES
     SURF.cpp
+    ORB.cpp
     main.cpp
 )
 

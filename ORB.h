@@ -10,12 +10,12 @@
 #include <opencv2/xfeatures2d/nonfree.hpp>
 
 // Reference -> https://docs.opencv.org/3.4/d5/dde/tutorial_feature_description.html
-class SURFDetector {
+class ORBDetector {
 public: 
-    SURFDetector(int minHessian, bool filtering);
+    ORBDetector(bool filtering);
 
     std::vector<cv::DMatch> findCorrespondences(std::string srcImage1Path, std::string srcImage2Path);
 private:
-    cv::Ptr<cv::xfeatures2d::SURF> detector;
+    cv::Ptr<cv::ORB> detector;
     bool m_filtering = false;
 };
