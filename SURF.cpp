@@ -8,7 +8,7 @@ SURFDetector::SURFDetector(int minHessian, float filteringFactor) {
 
 std::vector<cv::DMatch> SURFDetector::findCorrespondences(cv::Mat srcImage1, cv::Mat srcImage2) {
     if (srcImage1.empty() || srcImage2.empty()) {
-        throw std::exception("SURFDectector >> Fail to Load the Image");
+        throw std::length_error("SURFDectector >> Fail to Load the Image");
     }
     else {
         std::cerr << "SURFDectector >> Images successfully loaded" << std::endl;

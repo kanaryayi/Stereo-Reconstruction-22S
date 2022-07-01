@@ -24,6 +24,9 @@ For now, we only use Eigen and OpenCV.
 - `vcpkg install eigen3:x64-windows`
 - `vcpkg install opencv[contrib,nonfree]:x64-windows` (contrib, nonfree tag for using `xfeatures2d`)
 
+`for MacOs you need to follow this issue to build opencv with opencv_contrib to have xfeatures2d https://github.com/udacity/SFND_2D_Feature_Tracking/issues/3`
+
+
 After installing these two libraries, you should be able to build the project by using Cmake.
 
 **Before Building:** Dont forget to change the path to your vcpkg in [`CmakeLists.txt`](CMakeLists.txt) at ***Line 4***.
