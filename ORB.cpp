@@ -16,7 +16,7 @@ std::vector<cv::DMatch> ORBDetector::findCorrespondences(std::string srcImage1Pa
     int image2H = srcImage2.rows;
 
     if (srcImage1.empty() || srcImage2.empty()) {
-        throw std::exception("ORBDetector >> Fail to Load the Image");
+        throw std::out_of_range("ORBDetector >> Fail to Load the Image");
     }
     else {
         std::cerr << "ORBDetector >> Images successfully loaded" << std::endl;

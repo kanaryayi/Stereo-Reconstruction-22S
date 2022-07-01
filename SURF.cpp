@@ -16,7 +16,7 @@ std::vector<cv::DMatch> SURFDetector::findCorrespondences(std::string srcImage1P
     int image2H = srcImage2.rows;
 
     if (srcImage1.empty() || srcImage2.empty()) {
-        throw std::exception("SURFDectector >> Fail to Load the Image");
+        throw std::length_error("SURFDectector >> Fail to Load the Image");
     }
     else {
         std::cerr << "SURFDectector >> Images successfully loaded" << std::endl;
