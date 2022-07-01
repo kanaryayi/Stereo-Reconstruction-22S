@@ -12,10 +12,10 @@
 // Reference -> https://docs.opencv.org/3.4/d5/dde/tutorial_feature_description.html
 class SURFDetector {
 public: 
-    SURFDetector(int minHessian, bool filtering);
+    SURFDetector(int minHessian, float filteringFactor);
 
-    std::vector<cv::DMatch> findCorrespondences(std::string srcImage1Path, std::string srcImage2Path);
+    std::vector<cv::DMatch> findCorrespondences(cv::Mat srcImage1, cv::Mat srcImage2);
 private:
     cv::Ptr<cv::xfeatures2d::SURF> detector;
-    bool m_filtering = false;
+    float m_filteringFactor = 0;
 };

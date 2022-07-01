@@ -4,14 +4,17 @@
 
 int main(int argc, char** argv) {
 	
-	SURFDetector surfDectector = SURFDetector(700, true);
-	ORBDetector orbDectector = ORBDetector(true);
+	// minHessian Setting https://stackoverflow.com/a/17615172
+	SURFDetector surfDectector = SURFDetector(600, 1);
+	ORBDetector orbDectector = ORBDetector(3.5);
 
-	surfDectector.findCorrespondences("../data/Middlebury_2014/Adirondack-perfect/im0.png",
-									  "../data/Middlebury_2014/Adirondack-perfect/im1.png");
+	cv::Mat srcImage1 = cv::imread("../data/Middlebury_2014/Adirondack-perfect/im0.png");
+	cv::Mat srcImage2 = cv::imread("../data/Middlebury_2014/Adirondack-perfect/im1.png");
 
-	orbDectector.findCorrespondences("../data/Middlebury_2014/Adirondack-perfect/im0.png",
-									  "../data/Middlebury_2014/Adirondack-perfect/im1.png");
+	orbDectector.findCorrespondences(srcImage1, srcImage2);
+	surfDectector.findCorrespondences(srcImage1, srcImage2);
+
+
 	cv::waitKey(0);
 
 	return 0;
