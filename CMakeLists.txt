@@ -6,7 +6,7 @@ SET(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE PATH 
 
 PROJECT(stereo_reconstruction_ss22)
 
-SET(CMAKE_CXX_STANDARD 14)
+SET(CMAKE_CXX_STANDARD 17)
 FIND_PACKAGE(Eigen3 REQUIRED)
 FIND_PACKAGE(OpenCV REQUIRED)
 # FIND_PACKAGE(flann REQUIRED)
@@ -15,11 +15,14 @@ SET(HEADERS
     SURF.h
     ORB.h
     recoverPose.h
+    Utils.h
+    SIFT.h
 )
 
 SET(SOURCES
     SURF.cpp
     ORB.cpp
+    SIFT.cpp
     recoverPose.cpp
     main.cpp
 )

@@ -9,14 +9,16 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/features2d.hpp>
 
+#include "Utils.h"
+
 class SIFTDetector {
     public: 
-        SIFTDetector(float filteringFactor);
+        SIFTDetector(int numPoint);
 
-        std::vector<cv::DMatch> findCorrespondences(cv::Mat srcImage1, cv::Mat srcImage2);
+        std::pair<KeyPoints,KeyPoints> findCorrespondences(cv::Mat srcImage1, cv::Mat srcImage2);
     private:
         cv::Ptr<cv::SIFT> detector;
-        float m_filteringFactor = 0;
+        int m_numPoint = 10;
 };
 
 #endif

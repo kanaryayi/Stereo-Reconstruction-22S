@@ -9,12 +9,14 @@ cv::Mat deprojectPoints(cv::Mat imagePoints, cv::Mat cameraMatrix)
     cv::invert(cameraMatrix, inverseCameraMatrix);
     return inverseCameraMatrix * imagePoints;
 }
+
 cv::Mat undistortPoints(cv::Mat points, cv::Mat cameraMatrix, cv::Mat distCoeffients)
 {
     cv::Mat undistortedPoints;
     cv::undistortPoints(points, undistortedPoints, cameraMatrix, distCoeffients);
     return undistortedPoints;
 }
+
 cv::Mat estimateEssentialMatrix(cv::Mat points1, cv::Mat points2, cv::Mat cameraMatrix1, cv::Mat cameraMatrix2)
 {
     /*
