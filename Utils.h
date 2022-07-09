@@ -2,6 +2,7 @@
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/features2d.hpp>
+#include <opencv2/highgui.hpp>
 
 #include <filesystem>
 #include <iostream>
@@ -13,13 +14,23 @@
 #define USE_MIDDLEBURY_2014
 #define BIG_INTEGER 114514
 
-typedef std::vector<cv::KeyPoint> KeyPoints;
+typedef std::vector<cv::Point2f> KeyPoints;
+typedef cv::Mat R;
+typedef cv::Mat T;
 
 inline bool distanceSorting(cv::DMatch a, cv::DMatch b) {
     return a.distance < b.distance;
 }
 
-struct MiddleburyImagePair {
+inline cv::Mat makeSkewMatrixFromPoint(cv::Point3f p) {
+    cv::Mat skewMatrix = (cv::Mat_<double>(3, 3) <<    0,  -1,  p.y, 
+                                                       1,   0, -p.x,
+                                                    -p.y, p.x,   0);
+
+    return skewMatrix;
+}
+
+struct ImagePair {
     cv::Mat img1;
     cv::Mat img2;
 
@@ -40,6 +51,7 @@ class DataLoader
 {
     public:
         DataLoader(std::string dataset) {
+            std::cout << "DataLoader >> Loading data ..." << std::endl;
             m_dataset = dataset;
             getFiles("..\\data\\" + m_dataset, m_files, BIG_INTEGER);
             initImagePairs();
@@ -47,6 +59,7 @@ class DataLoader
         }
 
         DataLoader(std::string dataset, int num) {
+            std::cout << "DataLoader >> Loading data ..." << std::endl;
             m_dataset = dataset;
             getFiles("..\\data\\" + m_dataset, m_files, num);
             initImagePairs();
@@ -67,14 +80,14 @@ class DataLoader
             return m_files.at(index);
         }
 
-        MiddleburyImagePair getImagePairByIndex(int index) {
+        ImagePair getImagePairByIndex(int index) {
             std::string path = m_files.at(index);
 
             std::string img1Path = path + "/im0.png";
             std::string img2Path = path + "/im1.png";
             std::string calibPath = path + "/calib.txt";
             
-            MiddleburyImagePair imgPair;
+            ImagePair imgPair;
 
             imgPair.img1 = cv::imread(img1Path);
             imgPair.img2 = cv::imread(img2Path);
@@ -109,12 +122,12 @@ class DataLoader
             return imgPair;
         }
 
-        std::vector<MiddleburyImagePair> getAllImagePairs() {
+        std::vector<ImagePair> getAllImagePairs() {
             return m_imagePairs;
         }
 
-        MiddleburyImagePair getRandomSample() {
-            std::vector<MiddleburyImagePair> oneShot;
+        ImagePair getRandomSample() {
+            std::vector<ImagePair> oneShot;
             std::sample(m_imagePairs.begin(), m_imagePairs.end(), std::back_inserter(oneShot),
                 1, std::mt19937{ std::random_device{}() });
             return oneShot.at(0);
@@ -127,7 +140,7 @@ class DataLoader
             for (std::string line; std::getline(ss, line, ';');)
                 result.push_back(line);
 
-            auto row = std::vector<float>{};
+            auto row = std::vector<double>{};
 
             for (std::string line : result) {
                 auto ss_sub = std::stringstream{ line };
@@ -140,15 +153,15 @@ class DataLoader
                 }
             }
 
-            cv::Mat retMat = (cv::Mat_<float>(3, 3) << row[0], row[1], row[2],
-                row[3], row[4], row[5],
-                row[6], row[7], row[8]);
+            cv::Mat retMat = (cv::Mat_<double>(3, 3) << row[0], row[1], row[2],
+                                                        row[3], row[4], row[5],
+                                                        row[6], row[7], row[8]);
             return retMat;
         }
 
     private:
         std::string m_dataset = "Middlebury_2014";
-        std::vector<MiddleburyImagePair> m_imagePairs;
+        std::vector<ImagePair> m_imagePairs;
         std::vector<std::string> m_files;
 
         void getFiles(std::string path, std::vector<std::string>& m_files, int num)
@@ -169,12 +182,17 @@ class DataLoader
 
                 std::vector<std::string> tmpFiles;
                 for (int i = 0; i < outIndices.size(); i++) {
-                    std::cout << m_files.at(outIndices.at(i)) << std::endl;
+                    std::cout << "DataLoader >> " << m_files.at(outIndices.at(i)) << " is loaded." << std::endl;
                     tmpFiles.push_back(m_files.at(outIndices.at(i)));
                 }
 
                 m_files.clear();
                 m_files.swap(tmpFiles);
+            }
+            else {
+                for (int i = 0; i < m_files.size(); i++) {
+                    std::cout << "DataLoader >> " << m_files.at(i) << " is loaded." << std::endl;
+                }
             }
         }
 

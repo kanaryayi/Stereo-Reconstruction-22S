@@ -17,12 +17,14 @@ SET(HEADERS
     recoverPose.h
     Utils.h
     SIFT.h
+    EightPoint.h
 )
 
 SET(SOURCES
     SURF.cpp
     ORB.cpp
     SIFT.cpp
+    EightPoint.cpp
     recoverPose.cpp
     main.cpp
 )

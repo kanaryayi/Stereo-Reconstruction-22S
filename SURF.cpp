@@ -8,10 +8,10 @@ SURFDetector::SURFDetector(int minHessian, int numPoint) {
 
 std::pair<KeyPoints,KeyPoints> SURFDetector::findCorrespondences(cv::Mat srcImage1, cv::Mat srcImage2) {
     if (srcImage1.empty() || srcImage2.empty()) {
-        throw std::length_error("SURFDectector >> Fail to Load the Image");
+        throw std::length_error("SURFDectector >> Fail to Load the Image.");
     }
     else {
-        std::cerr << "SURFDectector >> Images successfully loaded" << std::endl;
+        std::cerr << "SURFDectector >> Images successfully loaded." << std::endl;
     }
 
     std::vector<cv::KeyPoint>keypoints1, keypoints2;
@@ -30,12 +30,18 @@ std::pair<KeyPoints,KeyPoints> SURFDetector::findCorrespondences(cv::Mat srcImag
     KeyPoints image1Points;
     KeyPoints image2Points;
 
-    if (matches.size() >= m_numPoint) {
+    if (matches.size() < m_numPoint) {
         std::cerr << "SURFDetector >> Error didn't get enough feature points." << std::endl;
     } else {
         for (int i = 0; i < m_numPoint; i++) {
-            image1Points.push_back(keypoints1.at(matches[i].queryIdx));
-            image2Points.push_back(keypoints2.at(matches[i].trainIdx));
+            cv::KeyPoint keyPoint1 = keypoints1.at(matches[i].queryIdx);
+            cv::Point2f point1 = cv::Point2f(keyPoint1.pt.x, keyPoint1.pt.y);
+
+            cv::KeyPoint keyPoint2 = keypoints2.at(matches[i].trainIdx);
+            cv::Point2f point2 = cv::Point2f(keyPoint2.pt.x, keyPoint2.pt.y);
+
+            image1Points.push_back(point1);
+            image2Points.push_back(point2);
             good_matches.push_back(matches.at(i));
         }
     }
@@ -56,8 +62,7 @@ std::pair<KeyPoints,KeyPoints> SURFDetector::findCorrespondences(cv::Mat srcImag
 
     for (int i = 0; i < m_numPoint; i++)
     {
-        printf("SURFDectector>> Good Match [%d] Keypoint 1: %d = = = Keypoint 2: %d , DIS = %f\n", i, matches[i].queryIdx, matches[i].trainIdx, matches[i].distance);
+        printf("SURFDectector >> Good Match [%d] Keypoint 1: %d = = = Keypoint 2: %d , DIS = %f.\n", i, matches[i].queryIdx, matches[i].trainIdx, matches[i].distance);
     }
-    
     return std::make_pair(image1Points, image2Points);
 }
