@@ -9,7 +9,9 @@
 #include <fstream>
 #include <random>
 
-//#define DRAW_DETECTOR_RESULT
+//#define CHECK_ALL_IMAGEPAIRS
+#define DRAW_DETECTOR_RESULT
+//#define RANDOM_SAMPLE
 
 #define USE_MIDDLEBURY_2014
 #define BIG_INTEGER 114514
@@ -31,6 +33,8 @@ inline cv::Mat makeSkewMatrixFromPoint(cv::Point3f p) {
 }
 
 struct ImagePair {
+    std::string path;
+
     cv::Mat img1;
     cv::Mat img2;
 
@@ -62,9 +66,13 @@ class DataLoader
             std::cout << "DataLoader >> Loading data ..." << std::endl;
             m_dataset = dataset;
             getFiles("..\\data\\" + m_dataset, m_files, num);
-            initImagePairs();
-            std::cout << "DataLoader >> All " << getSizeOfDataset() << " scenes loaded successfully." << std::endl;
+            if (num > 0) {
+                initImagePairs();
+                std::cout << "DataLoader >> All " << getSizeOfDataset() << " scenes loaded successfully." << std::endl;
+            }
         }
+
+        
         
         void initImagePairs() {
             for (int i = 0; i < m_files.size(); i++) {
@@ -80,7 +88,21 @@ class DataLoader
             return m_files.at(index);
         }
 
+        ImagePair getSpecificSample(std::string name) {
+            for (int i = 0; i < m_files.size(); i++) {
+                if (m_files.at(i).find(name) != std::string::npos) {
+                    return getImagePairByIndex(i);
+                }
+            }
+
+            return getImagePairByIndex(-1);
+        }
+
         ImagePair getImagePairByIndex(int index) {
+            if (index < 0) {
+                throw std::invalid_argument("Bad index");
+            }
+
             std::string path = m_files.at(index);
 
             std::string img1Path = path + "/im0.png";
@@ -88,6 +110,8 @@ class DataLoader
             std::string calibPath = path + "/calib.txt";
             
             ImagePair imgPair;
+
+            imgPair.path = path;
 
             imgPair.img1 = cv::imread(img1Path);
             imgPair.img2 = cv::imread(img2Path);

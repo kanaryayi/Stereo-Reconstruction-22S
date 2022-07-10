@@ -51,7 +51,7 @@ std::pair<KeyPoints,KeyPoints> SURFDetector::findCorrespondences(cv::Mat srcImag
     //cv::drawKeypoints(srcImage1, image1Points, srcImage1,cv::Scalar::all(-1), cv::DrawMatchesFlags::DEFAULT);
     //cv::drawKeypoints(srcImage2, image2Points, srcImage2,cv::Scalar::all(-1), cv::DrawMatchesFlags::DEFAULT);
 
-    cv::drawMatches(srcImage1, image1Points, srcImage2, image2Points, good_matches, matchImage, 5);
+    cv::drawMatches(srcImage1, keypoints1, srcImage2, keypoints2, good_matches, matchImage, 5);
     cv::resize(matchImage, matchImage, cv::Size(matchImage.cols * 0.3, matchImage.rows * 0.3), 0, 0, cv::INTER_LINEAR);
 
     cv::namedWindow("SURF_Correspondences", cv::WINDOW_AUTOSIZE);

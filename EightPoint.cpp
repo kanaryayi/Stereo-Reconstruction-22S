@@ -4,6 +4,7 @@ EightPointExecuter::EightPointExecuter(std::pair<KeyPoints, KeyPoints> setPair, 
 	std::cout << "EightPointExecuter >> Initialization Start." << std::endl;
 	assert(setPair.first.size() == setPair.second.size());
 	m_numPoint = setPair.first.size();
+	m_gamma.resize(m_numPoint);
 
 	m_pointSet1 = setPair.first;
 	m_pointSet2 = setPair.second;
@@ -38,34 +39,57 @@ std::pair<R,T> EightPointExecuter::getValidRT() {
 	int possibleCounter = 0;
 	int finalIndex = 0;
 	int runnerCounter = 0;
-
+	bool realAnswerFound = false;
 	cv::Mat rotation;
 	cv::Mat translation;
 	for (std::pair<R, T> transform : m_transformations) {
-		bool validationResOfTransfrom = isValidRT(transform);
+		std::pair<bool, int> validationResOfTransfrom = isValidRT(transform, runnerCounter);
 		std::cout << "EightPointExecuter >> Validate Transform " << runnerCounter 
-			<< (validationResOfTransfrom ? " (OK)" : " (X)") << "." << std::endl;
+			<< (validationResOfTransfrom.first ? (" (OK) with " 
+			+ std::to_string(validationResOfTransfrom.second * 1.0 / m_numPoint * 1.0) + "%") : " (X)") << "." << std::endl;
 
-		if (validationResOfTransfrom) {
+		if (validationResOfTransfrom.first) {
 			possibleCounter++;
-			rotation = transform.first;
-			translation = transform.second;
-			finalIndex = runnerCounter;
+			if (validationResOfTransfrom.second == m_numPoint) {
+				rotation = transform.first;
+				translation = transform.second;
+				//translation *= m_sample.baseline / cv::norm(translation);
+				finalIndex = runnerCounter;
+				realAnswerFound = true;
+			}
+			
+			if (!realAnswerFound) {
+				rotation = transform.first;
+				translation = transform.second;
+				//translation *= m_sample.baseline / cv::norm(translation);
+				finalIndex = runnerCounter;
+			}
 		}
 		runnerCounter++;
 	}
 
-	assert(possibleCounter == 1);
-	if (possibleCounter != 1) {
+	//assert(possibleCounter == 1);
+	if (possibleCounter != 1 && realAnswerFound) {
+		std::cout << "EightPointExecuter >> Although multiple R and T found, but we choose perfect one." << std::endl;
+	} else if (possibleCounter != 1 && !realAnswerFound) {
 		perror("EightPointExecuter >> Multiple R and T possible (X).");
+		std::cout << std::endl;
+		std::cout << m_sample.path << " Bad result!" << std::endl;
+		std::cout << std::endl;
 	}
+
+	if (!realAnswerFound) {
+		std::cout << "EightPointExecuter >> Warning: Bad R and T is used." << std::endl;
+	}
+
+
 	std::cout << "EightPointExecuter >> All Transformations validated." << std::endl;
 	std::cout << "EightPointExecuter >> Only Transform " << finalIndex << " will work." << std::endl;
 
 	return std::make_pair(rotation, translation);
 }
 
-bool EightPointExecuter::isValidRT(std::pair<R, T> RTPair) {
+std::pair<bool, int> EightPointExecuter::isValidRT(std::pair<R, T> RTPair, int runnerCounter) {
 	cv::Mat R = RTPair.first;
 	cv::Mat T = RTPair.second;
 
@@ -79,9 +103,9 @@ bool EightPointExecuter::isValidRT(std::pair<R, T> RTPair) {
 		cv::Mat backProjectedPointOfImage1 = K1Inv * pointOfImage1;
 		cv::Mat backProjectedPointOfImage2 = K2Inv * pointOfImage2;
 
-		cv::Mat p2SkewMatrix = makeSkewMatrixFromPoint(cv::Point3f(pointOfImage2));
+		cv::Mat p2SkewMatrix = makeSkewMatrixFromPoint(cv::Point3f(backProjectedPointOfImage2));
 
-		cv::Mat calculationR = p2SkewMatrix * R * pointOfImage1;
+		cv::Mat calculationR = p2SkewMatrix * R * backProjectedPointOfImage1;
 		cv::Mat calculationT = p2SkewMatrix * T;
 
 		M.at<double>(3 * i, i) = calculationR.at<double>(0, 0);
@@ -95,43 +119,55 @@ bool EightPointExecuter::isValidRT(std::pair<R, T> RTPair) {
 	cv::Mat V, D;
 	cv::eigen(M.t() * M, D, V);
 
-	cv::Mat lambda = cv::Mat::zeros(cv::Size(m_numPoint, 1), CV_64FC1);
+	cv::Mat lambda = cv::Mat::zeros(cv::Size(1, m_numPoint), CV_64FC1);
 
 	for (int i = 0; i < m_numPoint; i++) {
-		lambda.at<double>(0, i) = V.at<double>(m_numPoint, i);
+		lambda.at<double>(i, 0) = V.at<double>(m_numPoint, i);
 	}
 
 	double gamma = V.at<double>(m_numPoint, m_numPoint);
+
 	if (gamma < 0) {
 		gamma = -gamma;
 		lambda = -lambda;
 	}
 
+	// lambda = lambda / gamma;
+
 	int counter1 = 0;
 	int counter2 = 0;
 	for (int i = 0; i < m_numPoint; i++) {
-		if (lambda.at<double>(0, i) >= 0) {
+		if (lambda.at<double>(i, 0) >= 0.0) {
 			counter1++;
 		}
-
+		
 		cv::Mat pointOfImage1 = (cv::Mat_<double>(3, 1) << m_pointSet1.at(i).x, m_pointSet1.at(i).y, 1.0);
 		cv::Mat pointOfImage2 = (cv::Mat_<double>(3, 1) << m_pointSet2.at(i).x, m_pointSet2.at(i).y, 1.0);
 
 		cv::Mat backProjectedPointOfImage1 = K1Inv * pointOfImage1;
-		backProjectedPointOfImage1 *= lambda.at<double>(0, i);
+		cv::Mat backProjectedPointOfImage2 = K2Inv * pointOfImage2;
+
+		backProjectedPointOfImage1 *= lambda.at<double>(i, 0);
 
 		cv::Mat recoveredPointOfImage2 = R * backProjectedPointOfImage1 + T * gamma;
 
-		if (recoveredPointOfImage2.at<double>(2, 0)) {
+		std::cout << "Ori: " << backProjectedPointOfImage2 << std::endl;
+		std::cout << "Rec: " << recoveredPointOfImage2 / (recoveredPointOfImage2.at<double>(2, 0)) << std::endl;
+
+		if (recoveredPointOfImage2.at<double>(2, 0) >= 0) {
 			counter2++;
 		}
 	}
 
+	std::cout << "Debug << " << "Counter 1 = " << counter1 << " Counter 2 = " << counter2 << std::endl;
 	if (counter1 / m_numPoint == 1 && counter2 / m_numPoint == 1) {
-		m_scale = gamma;
-		return true;
+		m_gamma.at(runnerCounter) = gamma;
+		return std::make_pair(true, m_numPoint);
+	} else if (counter1 - counter2 == 0 && counter1 + counter2 >= m_numPoint) {
+		m_gamma.at(runnerCounter) = gamma;
+		return std::make_pair(true, counter1);
 	} else {
-		return false;
+		return std::make_pair(false, 0);
 	}
 }
 
@@ -143,6 +179,6 @@ cv::Mat EightPointExecuter::getFundamentalMatrix() {
 	return m_fundamentalMatrix;
 }
 
-double EightPointExecuter::getScale() {
-	return m_scale;
+std::vector<double> EightPointExecuter::getGamma() {
+	return m_gamma;
 }

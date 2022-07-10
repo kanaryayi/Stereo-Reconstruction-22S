@@ -11,11 +11,11 @@ public:
 
 	std::pair<R,T> getValidRT();
 	std::vector<std::pair<R, T>> getAllPossibleRT();
-	bool isValidRT(std::pair<R, T> RTPair);
+	std::pair<bool, int> isValidRT(std::pair<R, T> RTPair, int runnerCounter);
 
 	cv::Mat getEssentialMatrix();
 	cv::Mat getFundamentalMatrix();
-	double getScale();
+	std::vector<double> getGamma();
 
 private:
 	KeyPoints m_pointSet1;
@@ -23,7 +23,7 @@ private:
 
 	ImagePair m_sample;
 	int m_numPoint;
-	double m_scale;
+	std::vector<double> m_gamma;
 
 	cv::Mat m_fundamentalMatrix;
 	cv::Mat m_essentialMatrix;
