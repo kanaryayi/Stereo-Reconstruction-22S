@@ -4,7 +4,6 @@ EightPointExecuter::EightPointExecuter(std::pair<KeyPoints, KeyPoints> setPair, 
 	std::cout << "EightPointExecuter >> Initialization Start." << std::endl;
 	assert(setPair.first.size() == setPair.second.size());
 	m_numPoint = setPair.first.size();
-	m_gamma.resize(m_numPoint);
 
 	m_pointSet1 = setPair.first;
 	m_pointSet2 = setPair.second;
@@ -31,18 +30,18 @@ void EightPointExecuter::initPossibleRT() {
 	std::cout << "EightPointExecuter >> 4 Possible R and T Loaded." << std::endl;
 }
 
-std::vector<std::pair<R, T>> EightPointExecuter::getAllPossibleRT() {
+std::vector<std::pair<Rotate, Translate>> EightPointExecuter::getAllPossibleRT() {
 	return m_transformations;
 }
 
-std::pair<R,T> EightPointExecuter::getValidRT() {
+std::pair<Rotate,Translate> EightPointExecuter::getValidRT() {
 	int possibleCounter = 0;
 	int finalIndex = 0;
 	int runnerCounter = 0;
 	bool realAnswerFound = false;
 	cv::Mat rotation;
 	cv::Mat translation;
-	for (std::pair<R, T> transform : m_transformations) {
+	for (std::pair<Rotate, Translate> transform : m_transformations) {
 		std::pair<bool, int> validationResOfTransfrom = isValidRT(transform, runnerCounter);
 		std::cout << "EightPointExecuter >> Validate Transform " << runnerCounter 
 			<< (validationResOfTransfrom.first ? (" (OK) with " 
@@ -89,7 +88,7 @@ std::pair<R,T> EightPointExecuter::getValidRT() {
 	return std::make_pair(rotation, translation);
 }
 
-std::pair<bool, int> EightPointExecuter::isValidRT(std::pair<R, T> RTPair, int runnerCounter) {
+std::pair<bool, int> EightPointExecuter::isValidRT(std::pair<Rotate, Translate> RTPair, int runnerCounter) {
 	cv::Mat R = RTPair.first;
 	cv::Mat T = RTPair.second;
 
@@ -144,15 +143,17 @@ std::pair<bool, int> EightPointExecuter::isValidRT(std::pair<R, T> RTPair, int r
 		cv::Mat pointOfImage1 = (cv::Mat_<double>(3, 1) << m_pointSet1.at(i).x, m_pointSet1.at(i).y, 1.0);
 		cv::Mat pointOfImage2 = (cv::Mat_<double>(3, 1) << m_pointSet2.at(i).x, m_pointSet2.at(i).y, 1.0);
 
-		cv::Mat backProjectedPointOfImage1 = K1Inv * pointOfImage1;
+		cv::Mat backProjectedPointOfImage1 = K1Inv * pointOfImage1 * lambda.at<double>(i, 0);
 		cv::Mat backProjectedPointOfImage2 = K2Inv * pointOfImage2;
-
-		backProjectedPointOfImage1 *= lambda.at<double>(i, 0);
-
+		//T *= (m_sample.baseline / 1000) / (cv::norm(T));
+		//std::cout << "Depth: " << lambda.at<double>(i, 0) << std::endl;
 		cv::Mat recoveredPointOfImage2 = R * backProjectedPointOfImage1 + T * gamma;
 
-		std::cout << "Ori: " << backProjectedPointOfImage2 << std::endl;
-		std::cout << "Rec: " << recoveredPointOfImage2 / (recoveredPointOfImage2.at<double>(2, 0)) << std::endl;
+		//std::cout << "Ori: " << backProjectedPointOfImage2*(recoveredPointOfImage2.at<double>(2, 0)) << std::endl;
+		//std::cout << "Rec: " << recoveredPointOfImage2 << std::endl;
+		
+		//std::cout << (m_sample.K_img2 * recoveredPointOfImage2) / recoveredPointOfImage2.at<double>(2, 0) << std::endl;
+		//std::cout << pointOfImage2 << std::endl;
 
 		if (recoveredPointOfImage2.at<double>(2, 0) >= 0) {
 			counter2++;
@@ -161,10 +162,12 @@ std::pair<bool, int> EightPointExecuter::isValidRT(std::pair<R, T> RTPair, int r
 
 	std::cout << "Debug << " << "Counter 1 = " << counter1 << " Counter 2 = " << counter2 << std::endl;
 	if (counter1 / m_numPoint == 1 && counter2 / m_numPoint == 1) {
-		m_gamma.at(runnerCounter) = gamma;
+		//m_gamma.at(runnerCounter) = gamma;
+		m_gamma = gamma;
+		m_lambda = lambda;
 		return std::make_pair(true, m_numPoint);
 	} else if (counter1 - counter2 == 0 && counter1 + counter2 >= m_numPoint) {
-		m_gamma.at(runnerCounter) = gamma;
+		//m_gamma.at(runnerCounter) = gamma;
 		return std::make_pair(true, counter1);
 	} else {
 		return std::make_pair(false, 0);
@@ -179,6 +182,6 @@ cv::Mat EightPointExecuter::getFundamentalMatrix() {
 	return m_fundamentalMatrix;
 }
 
-std::vector<double> EightPointExecuter::getGamma() {
-	return m_gamma;
+std::pair<cv::Mat, double> EightPointExecuter::getLambdaGamma() {
+	return std::make_pair(m_lambda, m_gamma);
 }

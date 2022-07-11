@@ -4,10 +4,10 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/highgui.hpp>
 
-#include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <random>
+#include <filesystem>
 
 //#define CHECK_ALL_IMAGEPAIRS
 #define DRAW_DETECTOR_RESULT
@@ -17,8 +17,8 @@
 #define BIG_INTEGER 114514
 
 typedef std::vector<cv::Point2f> KeyPoints;
-typedef cv::Mat R;
-typedef cv::Mat T;
+typedef cv::Mat Rotate;
+typedef cv::Mat Translate;
 
 inline bool distanceSorting(cv::DMatch a, cv::DMatch b) {
     return a.distance < b.distance;
@@ -32,6 +32,38 @@ inline cv::Mat makeSkewMatrixFromPoint(cv::Point3f p) {
     return skewMatrix;
 }
 
+inline cv::Mat getEulerAngleByRotationMatrix(cv::Mat Rotate) {
+    double R32 = Rotate.at<double>(2, 1);
+    double R33 = Rotate.at<double>(2, 2);
+    double thetaX = std::atan2(R32, R33);
+    double thetaY = std::atan2(-Rotate.at<double>(2, 0), std::sqrt(R32 * R32 + R33 * R33));
+    double thetaZ = std::atan2(Rotate.at<double>(1, 0), Rotate.at<double>(0, 0));
+
+    cv::Mat retM = (cv::Mat_<double>(3, 1) << thetaX, thetaY, thetaZ);
+
+    return retM;
+}
+
+inline cv::Mat getRoationMatrixByEulerAngle(cv::Mat angle) {
+    double thetaX = angle.at<double>(0, 0);
+    double thetaY = angle.at<double>(1, 0);
+    double thetaZ = angle.at<double>(2, 0);
+
+    cv::Mat X = (cv::Mat_<double>(3, 3) << 1, 0, 0,
+        0, std::cos(thetaX), -std::sin(thetaX),
+        0, std::sin(thetaX), std::cos(thetaX));
+
+    cv::Mat Y = (cv::Mat_<double>(3, 3) << std::cos(thetaY), 0, std::sin(thetaY),
+        0, 1, 0,
+        -std::sin(thetaY), 0, std::cos(thetaY));
+
+    cv::Mat Z = (cv::Mat_<double>(3, 3) << std::cos(thetaZ), -std::sin(thetaZ), 0,
+        std::sin(thetaZ), std::cos(thetaZ), 0,
+        0, 0, 1);
+
+    return Z * Y * X;
+}
+
 struct ImagePair {
     std::string path;
 
@@ -40,6 +72,9 @@ struct ImagePair {
 
     cv::Mat K_img1;
     cv::Mat K_img2;
+
+    float f1;
+    float f2;
 
     float baseline;
     float doffs;
@@ -135,9 +170,10 @@ class DataLoader
 
                 //std::cout << getAttrNumByName("cam0", lines) << std::endl;
                 imgPair.K_img1 = getIntrinsicOfString(getAttrNumByName("cam0", lines));
-
+                imgPair.f1 = imgPair.K_img1.at<double>(0, 0);
                 //std::cout << getAttrNumByName("cam1", lines) << std::endl;
                 imgPair.K_img2 = getIntrinsicOfString(getAttrNumByName("cam1", lines));
+                imgPair.f2 = imgPair.K_img2.at<double>(0, 0);
 
                 //std::cout << imgPair.K_img1 << std::endl;
                 //std::cout << imgPair.K_img2 << std::endl;
@@ -176,7 +212,7 @@ class DataLoader
                     }
                 }
             }
-
+            
             cv::Mat retMat = (cv::Mat_<double>(3, 3) << row[0], row[1], row[2],
                                                         row[3], row[4], row[5],
                                                         row[6], row[7], row[8]);
@@ -193,6 +229,9 @@ class DataLoader
             for (const auto& entry : std::filesystem::directory_iterator(path)) {
                 //std::cout << entry.path().string() << std::endl;
                 m_files.push_back(entry.path().string());
+            }
+            if (num < 0) {
+                return;
             }
 
             if (num < m_files.size()) {
@@ -213,6 +252,7 @@ class DataLoader
                 m_files.clear();
                 m_files.swap(tmpFiles);
             }
+
             else {
                 for (int i = 0; i < m_files.size(); i++) {
                     std::cout << "DataLoader >> " << m_files.at(i) << " is loaded." << std::endl;

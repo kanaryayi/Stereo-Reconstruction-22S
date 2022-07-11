@@ -9,13 +9,13 @@ class EightPointExecuter {
 public:
 	EightPointExecuter(std::pair<KeyPoints, KeyPoints> setPair, ImagePair sample);
 
-	std::pair<R,T> getValidRT();
-	std::vector<std::pair<R, T>> getAllPossibleRT();
-	std::pair<bool, int> isValidRT(std::pair<R, T> RTPair, int runnerCounter);
+	std::pair<Rotate,Translate> getValidRT();
+	std::vector<std::pair<Rotate, Translate>> getAllPossibleRT();
+	std::pair<bool, int> isValidRT(std::pair<Rotate, Translate> RTPair, int runnerCounter);
 
 	cv::Mat getEssentialMatrix();
 	cv::Mat getFundamentalMatrix();
-	std::vector<double> getGamma();
+	std::pair<cv::Mat, double>getLambdaGamma();
 
 private:
 	KeyPoints m_pointSet1;
@@ -23,12 +23,13 @@ private:
 
 	ImagePair m_sample;
 	int m_numPoint;
-	std::vector<double> m_gamma;
+	double m_gamma;
+	cv::Mat m_lambda;
 
 	cv::Mat m_fundamentalMatrix;
 	cv::Mat m_essentialMatrix;
 
-	std::vector<std::pair<R, T>> m_transformations;
+	std::vector<std::pair<Rotate, Translate>> m_transformations;
 
 	void initPossibleRT();
 };

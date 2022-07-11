@@ -3,6 +3,7 @@
 #include "SIFT.h"
 
 #include "EightPoint.h"
+#include "PoseOptimizer.h"
 #include "Utils.h"
 
 #include <opencv2/core/utils/logger.hpp>
@@ -53,8 +54,20 @@ int main(int argc, char** argv) {
 	std::pair<KeyPoints, KeyPoints> res = surfDectector.findCorrespondences(specSample.img1, specSample.img2);
 	std::cout << std::endl;
 	EightPointExecuter eightPointExecuter = EightPointExecuter(res, specSample);
-	std::pair<R, T> validRT = eightPointExecuter.getValidRT();
+	std::pair<Rotate, Translate> validRT = eightPointExecuter.getValidRT();
+	std::pair<cv::Mat, double> lambdaGamma = eightPointExecuter.getLambdaGamma();
+	//Rotate R = validRT.first;
+	//Translate T = validRT.second;
+	//std::cout << "Tra " << tra << std::endl;
+	//std::cout << rot << std::endl;
+	//cv::Mat eulerAngles = getEulerAngleByRotationMatrix(R);
+	//std::cout << eulerAngles << std::endl;
+	//std::cout << getRoationMatrixByEulerAngle(eulerAngles) << std::endl;
 
+	std::cout << std::endl;
+
+	PoseOptimizer poseOptimizer = PoseOptimizer();
+	poseOptimizer.optimizeRT(validRT, lambdaGamma, res, specSample);
 #endif
 	return 0;
 }

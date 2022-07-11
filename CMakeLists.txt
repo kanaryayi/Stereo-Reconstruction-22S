@@ -9,12 +9,14 @@ PROJECT(stereo_reconstruction_ss22)
 SET(CMAKE_CXX_STANDARD 17)
 FIND_PACKAGE(Eigen3 REQUIRED)
 FIND_PACKAGE(OpenCV REQUIRED)
+FIND_PACKAGE(Ceres REQUIRED)
 # FIND_PACKAGE(flann REQUIRED)
 
 SET(HEADERS
     SURF.h
     ORB.h
     recoverPose.h
+    PoseOptimizer.h
     Utils.h
     SIFT.h
     EightPoint.h
@@ -25,6 +27,7 @@ SET(SOURCES
     ORB.cpp
     SIFT.cpp
     EightPoint.cpp
+    PoseOptimizer.cpp
     recoverPose.cpp
     main.cpp
 )
@@ -39,3 +42,4 @@ target_include_directories(stereo_reconstruction_ss22 PUBLIC ${EIGEN3_INCLUDE_DI
 # target_link_libraries(stereo_reconstruction_ss22 flann::flann flann::flann_cpp)
 TARGET_LINK_LIBRARIES(stereo_reconstruction_ss22 ${OpenCV_LIBS})
 TARGET_LINK_LIBRARIES(stereo_reconstruction_ss22 Eigen3::Eigen)
+TARGET_LINK_LIBRARIES(stereo_reconstruction_ss22 ceres Ceres::ceres)
