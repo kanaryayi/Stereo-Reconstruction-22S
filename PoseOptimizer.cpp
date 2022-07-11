@@ -7,8 +7,10 @@ PoseOptimizer::PoseOptimizer() {
 	options.max_num_iterations = 100;
 }
 
-void PoseOptimizer::optimizeRT(std::pair<Rotate, Translate> RTPair, std::pair<cv::Mat, double> lambdaGamma,
-		std::pair<KeyPoints, KeyPoints> keyPointPairs, ImagePair sample) {
+std::pair<Rotate, Translate> PoseOptimizer::optimizeRT(std::pair<Rotate, Translate> RTPair, 
+		std::pair<cv::Mat, double> lambdaGamma,
+		std::pair<KeyPoints, KeyPoints> keyPointPairs, 
+		ImagePair sample) {
 	
 	ceres::Problem problem;
 	KeyPoints pointSet1 = keyPointPairs.first;
@@ -39,7 +41,17 @@ void PoseOptimizer::optimizeRT(std::pair<Rotate, Translate> RTPair, std::pair<cv
 			new ReprojectionError(x1, x2, sample.K_img1, sample.K_img2, lambda.at<double>(i, 0), gamma)
 		);
 
+		ceres::CostFunction* regularizer = new ceres::AutoDiffCostFunction<Regularizer, 2, 3, 3>(
+			new Regularizer(0)
+		);
+
+
 		problem.AddResidualBlock(reprojectionError,
+			NULL /* squared loss */,
+			eulerAngles_,
+			translation_);
+
+		problem.AddResidualBlock(regularizer,
 			NULL /* squared loss */,
 			eulerAngles_,
 			translation_);
@@ -50,4 +62,13 @@ void PoseOptimizer::optimizeRT(std::pair<Rotate, Translate> RTPair, std::pair<cv
 	ceres::Solver::Summary summary;
 	ceres::Solve(options, &problem, &summary);
 	std::cout << summary.BriefReport() << std::endl;
+
+	cv::Mat newEulerAngles = (cv::Mat_<double>(3, 1) << eulerAngles_[0], eulerAngles_[1], eulerAngles_[2]);
+
+	cv::Mat translation = (cv::Mat_<double>(3, 1) << translation_[0], translation_[1], translation_[2]);
+
+	std::cout << "Before: " << eulerAngles << ", After: " << newEulerAngles << std::endl;
+	std::cout << "Before: " << T << ", After: " << translation << std::endl;
+
+	return std::make_pair(getRoationMatrixByEulerAngle(newEulerAngles), translation);
 }

@@ -12,18 +12,21 @@ int main(int argc, char** argv) {
 	// make OpenCV silent too urusai
 	cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_SILENT);
 
-	// Load 8 Image Pairs, we have 23 image for now
 	// If you want to load all
 	// Use  DataLoader("Middlebury_2014") as Constructor it loads all by default
+	// Warning: will consume about 2GB memory
+
+	// Load a specific imagePair => use -1
 	DataLoader dataLoader = DataLoader("Middlebury_2014", -1);
 
+	// Load a sepcific num of imagePair => use like 12 for 12 points
+	// DataLoader dataLoader = DataLoader("Middlebury_2014", 12);
+
 	// minHessian Setting https://stackoverflow.com/a/17615172
-	SURFDetector surfDectector = SURFDetector(600, 8);
+	SURFDetector surfDectector = SURFDetector(600, 12);
 	//ORBDetector orbDectector = ORBDetector(10);
 	//SIFTDetector siftDectector = SIFTDetector(10);
 	//orbDectector.findCorrespondences(srcImage1, srcImage2);
-
-
 	std::cout << std::endl;
 
 #ifdef defined(CHECK_ALL_IMAGEPAIRS)
@@ -47,7 +50,6 @@ int main(int argc, char** argv) {
 
 	EightPointExecuter eightPointExecuter = EightPointExecuter(res, randSample);
 	std::pair<R, T> validRT = eightPointExecuter.getValidRT();
-
 #else 
 	ImagePair specSample = dataLoader.getSpecificSample("Pipe");
 	std::cout << "DataLoader >> " << specSample.path << " is selected." << std::endl;
@@ -56,6 +58,7 @@ int main(int argc, char** argv) {
 	EightPointExecuter eightPointExecuter = EightPointExecuter(res, specSample);
 	std::pair<Rotate, Translate> validRT = eightPointExecuter.getValidRT();
 	std::pair<cv::Mat, double> lambdaGamma = eightPointExecuter.getLambdaGamma();
+
 	//Rotate R = validRT.first;
 	//Translate T = validRT.second;
 	//std::cout << "Tra " << tra << std::endl;
@@ -66,8 +69,14 @@ int main(int argc, char** argv) {
 
 	std::cout << std::endl;
 
+	// Really bad result Why?
 	PoseOptimizer poseOptimizer = PoseOptimizer();
 	poseOptimizer.optimizeRT(validRT, lambdaGamma, res, specSample);
+
+	// poseOptimizer.optimizeRT(validRT, lambdaGamma, res, specSample);
+
+
+
 #endif
 	return 0;
 }

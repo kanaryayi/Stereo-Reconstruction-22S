@@ -2,6 +2,22 @@
 #include <ceres/rotation.h>
 
 #include "Utils.h"
+class Regularizer {
+public:
+	Regularizer(int weight):
+		weight{weight} {}
+
+	template <typename T>
+	bool operator()(const T* const rotation, const T* const translation, T* residuals) const {
+		residuals[0] = ceres::sqrt(ceres::pow((rotation[0]), 2) + ceres::pow((rotation[1]), 2) + ceres::pow((rotation[1]), 2)) * T(weight);
+		residuals[1] = ceres::sqrt(ceres::pow((translation[0]), 2) + ceres::pow((translation[1]), 2) + ceres::pow((translation[1]), 2)) * T(weight);
+
+		return true;
+	}
+
+private:
+	int weight;
+};
 
 class ReprojectionError {
 public:
@@ -32,14 +48,6 @@ public:
 
 		Eigen::Matrix<T, 3, 1> deprojectedPoint = K1Inv * point * lambda_;
 
-		const T rotation_[3] = {
-			rotation[0], rotation[1], rotation[2]
-		};
-
-		const T translation_[3] = {
-			translation[0], translation[1], translation[2]
-		};
-
 		Eigen::Matrix<T, 3, 1> translationMatrix;
 		translationMatrix[0] = translation[0];
 		translationMatrix[1] = translation[1];
@@ -48,9 +56,9 @@ public:
 		const double kPi = 3.14159265358979323846;
 		const T degrees_to_radians(kPi / 180.0);
 
-		const T pitch(rotation_[0] * degrees_to_radians);
-		const T roll(rotation_[1] * degrees_to_radians);
-		const T yaw(rotation_[2] * degrees_to_radians);
+		const T pitch(rotation[0] * degrees_to_radians);
+		const T roll(rotation[1] * degrees_to_radians);
+		const T yaw(rotation[2] * degrees_to_radians);
 
 		const T c1 = ceres::cos(yaw);
 		const T s1 = ceres::sin(yaw);
@@ -131,7 +139,7 @@ private:
 class PoseOptimizer {
 public:
 	PoseOptimizer();
-	void optimizeRT(std::pair<Rotate, Translate> RTPair, 
+	std::pair<Rotate, Translate> optimizeRT(std::pair<Rotate, Translate> RTPair,
 		std::pair<cv::Mat, double> lambdaGamma,
 		std::pair<KeyPoints, KeyPoints> keyPointPairs,
 		ImagePair sample);
