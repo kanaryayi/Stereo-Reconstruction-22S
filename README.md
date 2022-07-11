@@ -19,10 +19,11 @@ At first, you need to install vcpkg. You can find the installation tutorial [her
 
 And then you'll need to install our dependencies.
 
-For now, we only use Eigen and OpenCV.
+For now, we only use Eigen, OpenCV and Ceres Solver.
 
 - `vcpkg install eigen3:x64-windows`
 - `vcpkg install opencv[contrib,nonfree]:x64-windows` (contrib, nonfree tag for using `xfeatures2d`)
+- `vcpkg install ceres:x64-windows`
 
 `for MacOs you need to follow this issue to build opencv with opencv_contrib to have xfeatures2d https://github.com/udacity/SFND_2D_Feature_Tracking/issues/3`
 
