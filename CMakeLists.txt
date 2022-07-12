@@ -17,6 +17,7 @@ SET(HEADERS
     ORB.h
     recoverPose.h
     PoseOptimizer.h
+    BlockMatcher.h
     Utils.h
     SIFT.h
     EightPoint.h
@@ -27,6 +28,7 @@ SET(SOURCES
     ORB.cpp
     SIFT.cpp
     EightPoint.cpp
+    BlockMatcher.cpp
     PoseOptimizer.cpp
     recoverPose.cpp
     main.cpp

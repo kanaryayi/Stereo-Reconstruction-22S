@@ -4,6 +4,7 @@
 
 #include "EightPoint.h"
 #include "PoseOptimizer.h"
+#include "BlockMatcher.h"
 #include "Utils.h"
 
 #include <opencv2/core/utils/logger.hpp>
@@ -21,13 +22,13 @@ int main(int argc, char** argv) {
 
 	// Load a sepcific num of imagePair => use like 12 for 12 points
 	// DataLoader dataLoader = DataLoader("Middlebury_2014", 12);
-
-	// minHessian Setting https://stackoverflow.com/a/17615172
-	SURFDetector surfDectector = SURFDetector(600, 12);
-	//ORBDetector orbDectector = ORBDetector(10);
-	//SIFTDetector siftDectector = SIFTDetector(10);
-	//orbDectector.findCorrespondences(srcImage1, srcImage2);
-	std::cout << std::endl;
+	if (SPARSE_MATCHING) {
+		// minHessian Setting https://stackoverflow.com/a/17615172
+		SURFDetector surfDectector = SURFDetector(600, 12);
+		//ORBDetector orbDectector = ORBDetector(10);
+		//SIFTDetector siftDectector = SIFTDetector(10);
+		//orbDectector.findCorrespondences(srcImage1, srcImage2);
+		std::cout << std::endl;
 
 #ifdef defined(CHECK_ALL_IMAGEPAIRS)
 	// for each img pairs
@@ -75,6 +76,20 @@ int main(int argc, char** argv) {
 
 	// poseOptimizer.optimizeRT(validRT, lambdaGamma, res, specSample);
 
+	} else if (DENSE_MATCHING) {
+		ImagePair specSample = dataLoader.getSpecificSample("Pipe");
+		std::cout << "DataLoader >> " << specSample.path << " is selected." << std::endl;
+		BlockMatcher blockMatcher = BlockMatcher(specSample);
+		
+		
+		// blockMatcher.opBM(15, 160);
+		// blockMatcher.opBMwithFiltering(15, 160);
+		blockMatcher.opSGBM(3, 160);
+		blockMatcher.opSGBMwithFiltering(3, 160);
+
+	} else {
+		std::cerr << "MAIN >> Nothing to do, check your Marcos." << std::endl;
+	}
 
 
 #endif

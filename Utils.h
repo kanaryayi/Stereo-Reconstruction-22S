@@ -3,14 +3,21 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/features2d.hpp>
 #include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include <iostream>
 #include <fstream>
 #include <random>
 #include <filesystem>
 
+#define SPARSE_MATCHING 0
+
+#define DENSE_MATCHING  1
+
 //#define CHECK_ALL_IMAGEPAIRS
 #define DRAW_DETECTOR_RESULT
+
+
 //#define RANDOM_SAMPLE
 
 #define USE_MIDDLEBURY_2014
