@@ -19,8 +19,8 @@
 #include <random>
 #include <filesystem>
 
-#define SPARSE_MATCHING 0
-#define DENSE_MATCHING  1
+#define SPARSE_MATCHING 1
+#define DENSE_MATCHING  0
 
 #define DRAW_DETECTOR_RESULT
 

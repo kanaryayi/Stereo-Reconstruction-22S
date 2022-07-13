@@ -15,6 +15,7 @@ public:
 	cv::Mat getEssentialMatrix();
 	cv::Mat getFundamentalMatrix();
 	std::pair<cv::Mat, double>getLambdaGamma();
+	std::pair<Rotate, Translate> tryOpenCVPiepline();
 
 private:
 	KeyPoints m_pointSet1;

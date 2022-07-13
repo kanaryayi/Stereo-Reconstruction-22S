@@ -50,19 +50,22 @@ int main(int argc, char** argv) {
 	std::pair<Rotate, Translate> validRT = eightPointExecuter.getValidRT();
 	std::pair<cv::Mat, double> lambdaGamma = eightPointExecuter.getLambdaGamma();
 
-	//Rotate R = validRT.first;
-	//Translate T = validRT.second;
-	//std::cout << "Tra " << tra << std::endl;
-	//std::cout << rot << std::endl;
+	std::pair<Rotate, Translate> openCVRT = eightPointExecuter.tryOpenCVPiepline();
+
+	Rotate R = validRT.first;
+	Translate T = validRT.second;
+	std::cout << "R: " << R << std::endl;
+	std::cout << "T: " << T << std::endl;
+
 	//cv::Mat eulerAngles = getEulerAngleByRotationMatrix(R);
 	//std::cout << eulerAngles << std::endl;
 	//std::cout << getRoationMatrixByEulerAngle(eulerAngles) << std::endl;
 
-	std::cout << std::endl;
+	//std::cout << std::endl;
 
 	// Really bad result Why?
-	PoseOptimizer poseOptimizer = PoseOptimizer();
-	poseOptimizer.optimizeRT(validRT, lambdaGamma, res, specSample);
+	// PoseOptimizer poseOptimizer = PoseOptimizer();
+	// poseOptimizer.optimizeRT(openCVRT, lambdaGamma, res, specSample);
 
 	// poseOptimizer.optimizeRT(validRT, lambdaGamma, res, specSample);
 
