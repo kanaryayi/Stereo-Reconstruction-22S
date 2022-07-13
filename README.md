@@ -30,6 +30,8 @@ For now, we only use Eigen, OpenCV and Ceres Solver.
 
 After installing these two libraries, you should be able to build the project by using Cmake.
 
+**You May Change CXX Standard of the VS project manually. **
+
 **Before Building:** Dont forget to change the path to your vcpkg in [`CmakeLists.txt`](CMakeLists.txt) at ***Line 4***.
 
 ## Project structure
