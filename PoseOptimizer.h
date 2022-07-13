@@ -1,7 +1,5 @@
-#include <ceres/ceres.h>
-#include <ceres/rotation.h>
-
 #include "Utils.h"
+
 class Regularizer {
 public:
 	Regularizer(int weight):

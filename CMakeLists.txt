@@ -7,26 +7,25 @@ SET(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE PATH 
 PROJECT(stereo_reconstruction_ss22)
 
 SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+SET(CMAKE_CXX_EXTENSIONS OFF)
+
 FIND_PACKAGE(Eigen3 REQUIRED)
 FIND_PACKAGE(OpenCV REQUIRED)
 FIND_PACKAGE(Ceres REQUIRED)
 # FIND_PACKAGE(flann REQUIRED)
 
 SET(HEADERS
-    SURF.h
-    ORB.h
+    FeatureDectector.h
     recoverPose.h
     PoseOptimizer.h
     BlockMatcher.h
     Utils.h
-    SIFT.h
     EightPoint.h
 )
 
 SET(SOURCES
-    SURF.cpp
-    ORB.cpp
-    SIFT.cpp
+    FeatureDectector.cpp
     EightPoint.cpp
     BlockMatcher.cpp
     PoseOptimizer.cpp

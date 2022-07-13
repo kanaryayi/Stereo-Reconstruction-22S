@@ -1,13 +1,9 @@
-#include "SURF.h"
-#include "ORB.h"
-#include "SIFT.h"
-
+#include "FeatureDectector.h"
 #include "EightPoint.h"
 #include "PoseOptimizer.h"
 #include "BlockMatcher.h"
 #include "Utils.h"
 
-#include <opencv2/core/utils/logger.hpp>
 
 int main(int argc, char** argv) {
 	// make OpenCV silent too urusai
@@ -17,44 +13,38 @@ int main(int argc, char** argv) {
 	// Use  DataLoader("Middlebury_2014") as Constructor it loads all by default
 	// Warning: will consume about 2GB memory
 
+	// Load a sepcific num of imagePair => use like 12 for 12 points
+	// DataLoader dataLoader = DataLoader("Middlebury_2014", 12);
+
 	// Load a specific imagePair => use -1
 	DataLoader dataLoader = DataLoader("Middlebury_2014", -1);
 
-	// Load a sepcific num of imagePair => use like 12 for 12 points
-	// DataLoader dataLoader = DataLoader("Middlebury_2014", 12);
+
 	if (SPARSE_MATCHING) {
-		// minHessian Setting https://stackoverflow.com/a/17615172
-		SURFDetector surfDectector = SURFDetector(600, 12);
-		//ORBDetector orbDectector = ORBDetector(10);
-		//SIFTDetector siftDectector = SIFTDetector(10);
-		//orbDectector.findCorrespondences(srcImage1, srcImage2);
+		FeatureDectector detector = FeatureDectector(12);
 		std::cout << std::endl;
 
-#ifdef defined(CHECK_ALL_IMAGEPAIRS)
+#ifdef defined(ALL_SAMPLE)
 	// for each img pairs
 	for (ImagePair ip : dataLoader.getAllImagePairs()) {
-		std::pair<KeyPoints, KeyPoints> res = surfDectector.findCorrespondences(ip.img1, ip.img2);
-		//siftDectector.findCorrespondences(srcImage1, srcImage2);
+		std::pair<KeyPoints, KeyPoints> res = detector.findCorrespondences(ip, USE_SURF);
 		std::cout << std::endl;
-
 		EightPointExecuter eightPointExecuter = EightPointExecuter(res, ip);
 		std::pair<R, T> validRT = eightPointExecuter.getValidRT();
-
 		std::cout << std::endl;
 	}
 #elif defined(RANDOM_SAMPLE)
-
 	ImagePair randSample = dataLoader.getRandomSample();
 	std::cout << "DataLoader >> " << randSample.path << " is selected." << std::endl;
-	std::pair<KeyPoints, KeyPoints> res = surfDectector.findCorrespondences(randSample.img1, randSample.img2);
+	std::pair<KeyPoints, KeyPoints> res = surfDectector.findCorrespondences(randSample, USE_SURF);
 	std::cout << std::endl;
 
 	EightPointExecuter eightPointExecuter = EightPointExecuter(res, randSample);
 	std::pair<R, T> validRT = eightPointExecuter.getValidRT();
-#else 
+#elif defined(SPEC_SAMPLE)
 	ImagePair specSample = dataLoader.getSpecificSample("Pipe");
 	std::cout << "DataLoader >> " << specSample.path << " is selected." << std::endl;
-	std::pair<KeyPoints, KeyPoints> res = surfDectector.findCorrespondences(specSample.img1, specSample.img2);
+	std::pair<KeyPoints, KeyPoints> res = detector.findCorrespondences(specSample, USE_SURF);
 	std::cout << std::endl;
 	EightPointExecuter eightPointExecuter = EightPointExecuter(res, specSample);
 	std::pair<Rotate, Translate> validRT = eightPointExecuter.getValidRT();
@@ -80,18 +70,15 @@ int main(int argc, char** argv) {
 		ImagePair specSample = dataLoader.getSpecificSample("Pipe");
 		std::cout << "DataLoader >> " << specSample.path << " is selected." << std::endl;
 		BlockMatcher blockMatcher = BlockMatcher(specSample);
-		
-		
-		// blockMatcher.opBM(15, 160);
-		// blockMatcher.opBMwithFiltering(15, 160);
-		blockMatcher.opSGBM(3, 160);
-		blockMatcher.opSGBMwithFiltering(3, 160);
-
+		blockMatcher.performBlockMatching(15, 160, USE_BM, false); // BM, NO WLS
+		blockMatcher.performBlockMatching(15, 160, USE_BM, true); // BM, WLS
+		blockMatcher.performBlockMatching(3, 160, USE_SGBM, false); // SGBM, NO WLS
+		blockMatcher.performBlockMatching(3, 160, USE_SGBM, true); // BM, WLS
 	} else {
-		std::cerr << "MAIN >> Nothing to do, check your Marcos." << std::endl;
+		std::cerr << "MAIN >> Nothing to do, check your MATCHING Marcos." << std::endl;
 	}
-
-
+#else
+	std::cerr << "MAIN >> Nothing to do, check your SAMPLE Marcos."
 #endif
 	return 0;
 }

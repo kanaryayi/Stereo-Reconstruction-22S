@@ -1,9 +1,18 @@
 #pragma once
 
 #include <opencv2/core/core.hpp>
+#include <opencv2/calib3d.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/ximgproc.hpp>
+#include <opencv2/core/utility.hpp>
 #include <opencv2/features2d.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/xfeatures2d/nonfree.hpp>
+#include <opencv2/core/utils/logger.hpp>
+
+#include <ceres/ceres.h>
+#include <ceres/rotation.h>
 
 #include <iostream>
 #include <fstream>
@@ -11,14 +20,16 @@
 #include <filesystem>
 
 #define SPARSE_MATCHING 0
-
 #define DENSE_MATCHING  1
 
-//#define CHECK_ALL_IMAGEPAIRS
 #define DRAW_DETECTOR_RESULT
 
-
+//#define ALL_SAMPLE
+#define SPEC_SAMPLE
 //#define RANDOM_SAMPLE
+
+// minHessian Setting https://stackoverflow.com/a/17615172
+#define SURF_MIN_HESSIAN 600
 
 #define USE_MIDDLEBURY_2014
 #define BIG_INTEGER 114514
