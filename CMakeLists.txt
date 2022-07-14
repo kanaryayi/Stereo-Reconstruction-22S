@@ -17,7 +17,6 @@ FIND_PACKAGE(Ceres REQUIRED)
 
 SET(HEADERS
     FeatureDectector.h
-    recoverPose.h
     PoseOptimizer.h
     BlockMatcher.h
     Utils.h
@@ -29,7 +28,6 @@ SET(SOURCES
     EightPoint.cpp
     BlockMatcher.cpp
     PoseOptimizer.cpp
-    recoverPose.cpp
     main.cpp
 )
 
