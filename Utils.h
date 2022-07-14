@@ -110,7 +110,8 @@ class DataLoader
         DataLoader(std::string dataset) {
             std::cout << "DataLoader >> Loading data ..." << std::endl;
             m_dataset = dataset;
-            getFiles("..\\data\\" + m_dataset, m_files, BIG_INTEGER);
+            std::filesystem::path rootDataPath = "../data/" + m_dataset;
+            getFiles(rootDataPath, m_files, BIG_INTEGER);
             initImagePairs();
             std::cout << "DataLoader >> All " << getSizeOfDataset() << " scenes loaded successfully." << std::endl;
         }
@@ -118,7 +119,8 @@ class DataLoader
         DataLoader(std::string dataset, int num) {
             std::cout << "DataLoader >> Loading data ..." << std::endl;
             m_dataset = dataset;
-            getFiles("..\\data\\" + m_dataset, m_files, num);
+            std::filesystem::path rootDataPath = "../data/" + m_dataset;
+            getFiles(rootDataPath, m_files, num);
             if (num > 0) {
                 initImagePairs();
                 std::cout << "DataLoader >> All " << getSizeOfDataset() << " scenes loaded successfully." << std::endl;
@@ -242,7 +244,7 @@ class DataLoader
         std::vector<ImagePair> m_imagePairs;
         std::vector<std::string> m_files;
 
-        void getFiles(std::string path, std::vector<std::string>& m_files, int num)
+        void getFiles(std::filesystem::path path, std::vector<std::string>& m_files, int num)
         {
             for (const auto& entry : std::filesystem::directory_iterator(path)) {
                 //std::cout << entry.path().string() << std::endl;
