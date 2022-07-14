@@ -21,6 +21,7 @@ SET(HEADERS
     BlockMatcher.h
     Utils.h
     EightPoint.h
+    Reconstruction.h
 )
 
 SET(SOURCES
@@ -28,6 +29,7 @@ SET(SOURCES
     EightPoint.cpp
     BlockMatcher.cpp
     PoseOptimizer.cpp
+    Reconstruction.cpp
     main.cpp
 )
 
