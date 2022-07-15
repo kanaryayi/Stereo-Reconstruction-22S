@@ -3,6 +3,28 @@
 #include "PoseOptimizer.h"
 #include "BlockMatcher.h"
 #include "Utils.h"
+#include "PFMManager.h"
+
+
+int display_disperity(std::string path) {
+
+	cv::Mat disperity_groundtruth = PFMManager::loadPFM(path);
+	cv::resize(disperity_groundtruth, disperity_groundtruth, cv::Size(0.3 * disperity_groundtruth.cols, 0.3 * disperity_groundtruth.rows), 0, 0, cv::INTER_LINEAR);
+	
+	cv::Mat mask{disperity_groundtruth == std::numeric_limits<float>::infinity()};
+	disperity_groundtruth.setTo(0, mask);
+
+	cv::Mat output;
+	cv::normalize(disperity_groundtruth, output, 0, 255, cv::NORM_MINMAX);
+
+	cv::Mat output_uint;
+	output.convertTo(output_uint, CV_8UC3);
+
+	cv::imshow("Disperity", output_uint);
+	cv::waitKey(0);
+
+	return 0;
+}
 
 
 int main(int argc, char** argv) {
@@ -76,7 +98,7 @@ int main(int argc, char** argv) {
 		blockMatcher.performBlockMatching(15, 160, USE_BM, false); // BM, NO WLS
 		blockMatcher.performBlockMatching(15, 160, USE_BM, true); // BM, WLS
 		blockMatcher.performBlockMatching(3, 160, USE_SGBM, false); // SGBM, NO WLS
-		blockMatcher.performBlockMatching(3, 160, USE_SGBM, true); // BM, WLS
+		blockMatcher.performBlockMatching(3, 160, USE_SGBM, true); // BM, WLS	
 	} else {
 		std::cerr << "MAIN >> Nothing to do, check your MATCHING Marcos." << std::endl;
 	}
