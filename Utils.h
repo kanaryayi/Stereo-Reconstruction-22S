@@ -19,6 +19,8 @@
 #include <random>
 #include <filesystem>
 
+#include "PFMManager.h"
+
 #define SPARSE_MATCHING 1
 #define DENSE_MATCHING  0
 
@@ -91,6 +93,16 @@ struct ImagePair {
     cv::Mat K_img1;
     cv::Mat K_img2;
 
+    /*
+        Ground truth disperity of left image.
+    */
+    cv::Mat disp0;
+
+    /*
+        Ground truth disperity of right image.
+    */
+    cv::Mat disp1;
+
     float f1;
     float f2;
 
@@ -116,18 +128,26 @@ class DataLoader
             std::cout << "DataLoader >> All " << getSizeOfDataset() << " scenes loaded successfully." << std::endl;
         }
 
-        DataLoader(std::string dataset, int num) {
+        // Loads `num` many data pairs, specified by the `dataset` string. If
+        // `load_specific` is true then it loads a specific pair, otherwise
+        // it will randomly sample a subset of all available sets. For `load_specific`
+        // to work `num = 1` must be true.
+        DataLoader(std::string dataset, int num, bool load_specific = false) {
             std::cout << "DataLoader >> Loading data ..." << std::endl;
             m_dataset = dataset;
             std::filesystem::path rootDataPath = "../data/" + m_dataset;
-            getFiles(rootDataPath, m_files, num);
+            
+            if (load_specific) {
+                getSpecificFiles(rootDataPath, m_files, num);
+            } else {
+                getFiles(rootDataPath, m_files, num);
+            }
+
             if (num > 0) {
                 initImagePairs();
                 std::cout << "DataLoader >> All " << getSizeOfDataset() << " scenes loaded successfully." << std::endl;
             }
         }
-
-        
         
         void initImagePairs() {
             for (int i = 0; i < m_files.size(); i++) {
@@ -163,6 +183,12 @@ class DataLoader
             std::string img1Path = path + "/im0.png";
             std::string img2Path = path + "/im1.png";
             std::string calibPath = path + "/calib.txt";
+
+
+            std::string disp0Path = path + "/disp0.pfm";
+            std::string disp1Path = path + "/disp1.pfm";
+
+            std::cout << "PATH " << path << "\n";
             
             ImagePair imgPair;
 
@@ -170,6 +196,17 @@ class DataLoader
 
             imgPair.img1 = cv::imread(img1Path);
             imgPair.img2 = cv::imread(img2Path);
+
+            // Calculate disperity for left image
+            
+            cv::Mat disp0_raw = PFMManager::loadPFM(disp0Path);
+            cv::Mat disp0_mask{disp0_raw == std::numeric_limits<float>::infinity()};
+            disp0_raw.setTo(0, disp0_mask);
+            
+            cv::Mat disp0_norm;
+            cv::normalize(disp0_raw, disp0_norm, 0, 255, cv::NORM_MINMAX);
+            disp0_norm.convertTo(imgPair.disp0, CV_8UC3);
+            
 
             std::ifstream ifs(calibPath, std::ios::in);
 
@@ -278,6 +315,10 @@ class DataLoader
                     std::cout << "DataLoader >> " << m_files.at(i) << " is loaded." << std::endl;
                 }
             }
+        }
+
+        void getSpecificFiles(std::filesystem::path path, std::vector<std::string>& m_files, int num) {
+            m_files.push_back(path.string());
         }
 
         std::string getAttrNumByName(std::string attr, std::vector<std::string> lines) {
