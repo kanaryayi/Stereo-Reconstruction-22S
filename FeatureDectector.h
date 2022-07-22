@@ -1,3 +1,6 @@
+#ifndef FEATURE_DETECTOR_H
+#define FEATURE_DETECTOR_H
+
 #include "Utils.h"
 
 enum FeatureDectectorMethod {
@@ -17,3 +20,5 @@ private:
     cv::Ptr<cv::ORB> ORBDetector;
     cv::Ptr<cv::xfeatures2d::SURF> SURFDetector;
 };
+
+#endif

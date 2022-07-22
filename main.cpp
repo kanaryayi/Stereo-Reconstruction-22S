@@ -3,25 +3,37 @@
 #include "PoseOptimizer.h"
 #include "BlockMatcher.h"
 #include "Utils.h"
+
 #include "PFMManager.h"
 
+#include "PointCloud.h"
+#include "Reconstruction.h"
 
-int display_disperity(std::string path) {
+#include "Eigen.h"
 
-	cv::Mat disperity_groundtruth = PFMManager::loadPFM(path);
-	cv::resize(disperity_groundtruth, disperity_groundtruth, cv::Size(0.3 * disperity_groundtruth.cols, 0.3 * disperity_groundtruth.rows), 0, 0, cv::INTER_LINEAR);
+int testMeshGeneration() {
+	DataLoader dataloader = DataLoader("Middlebury_2014/Adirondack-perfect", 1, true);
+	ImagePair downsampled = dataloader.getImagePairByIndex(0)
+		.sampleDown(0.3);
+
+	std::stringstream ss;
+	ss << "reconstructed.off";
+
+	PointCloud pc{};
+	float maxDepth = 0.0;
+
+	cv::Mat depthMap = pc.depthMapFromDisperityMap(downsampled.disp0, downsampled.baseline,
+													downsampled.doffs, downsampled.f1, &maxDepth, false);
 	
-	cv::Mat mask{disperity_groundtruth == std::numeric_limits<float>::infinity()};
-	disperity_groundtruth.setTo(0, mask);
 
-	cv::Mat output;
-	cv::normalize(disperity_groundtruth, output, 0, 255, cv::NORM_MINMAX);
+	
+	Vertex* vertices = pc.generatePointCloud(depthMap, downsampled.img1, downsampled.K_img1, maxDepth);
 
-	cv::Mat output_uint;
-	output.convertTo(output_uint, CV_8UC3);
+	if (!Mesh::writeMesh(vertices, depthMap.cols, depthMap.rows, ss.str())) {
+		std::cerr << "Could not write mesh " << ss.str() << "\n";
+	}
 
-	cv::imshow("Disperity", output_uint);
-	cv::waitKey(0);
+	delete[] vertices;
 
 	return 0;
 }
@@ -105,5 +117,8 @@ int main(int argc, char** argv) {
 #else
 	std::cerr << "MAIN >> Nothing to do, check your SAMPLE Marcos."
 #endif
+
+	testMeshGeneration();
+
 	return 0;
 }

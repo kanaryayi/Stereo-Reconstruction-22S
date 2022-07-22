@@ -114,6 +114,43 @@ struct ImagePair {
 
     int vmin;
     int vmax;
+
+    // Returns a new ImagePair with the same information/matrices as the
+    // original one with the difference that it is downsampled by `factor`
+    ImagePair sampleDown(float factor) {
+        cv::Mat img1_d;
+        cv::Mat img2_d;
+        cv::Mat disp0_d;
+        cv::Mat disp1_d;
+        
+        cv::resize(img1, img1_d, cv::Size(factor * img1.cols, factor * img1.rows),
+            0, 0, cv::INTER_LINEAR);
+        cv::resize(img1, img1_d, cv::Size(factor * img1.cols, factor * img1.rows),
+            0, 0, cv::INTER_LINEAR);
+        cv::resize(disp0, disp0_d, cv::Size(factor * disp0.cols, factor * disp0.rows),
+            0, 0, cv::INTER_LINEAR);
+        cv::resize(disp1, disp1_d, cv::Size(factor * disp1.cols, factor * disp1.rows),
+            0, 0, cv::INTER_LINEAR);
+
+        ImagePair new_pair{};
+
+        new_pair.img1 = img1_d;
+        new_pair.img2 = img2_d;
+        new_pair.K_img1 = K_img1;
+        new_pair.K_img2 = K_img2;
+        new_pair.disp0 = disp0_d;
+        new_pair.disp1 = disp1_d;
+        new_pair.f1 = f1;
+        new_pair.f2 = f2;
+        new_pair.baseline = baseline;
+        new_pair.doffs = doffs;
+        new_pair.weight = weight;
+        new_pair.height = height;
+        new_pair.vmin = vmin;
+        new_pair.vmax = vmax;
+        
+        return new_pair;
+    }
 };
 
 class DataLoader
@@ -205,8 +242,15 @@ class DataLoader
             
             cv::Mat disp0_norm;
             cv::normalize(disp0_raw, disp0_norm, 0, 255, cv::NORM_MINMAX);
-            disp0_norm.convertTo(imgPair.disp0, CV_8UC3);
+            disp0_norm.convertTo(imgPair.disp0, CV_8UC1);
             
+            cv::Mat disp1_raw = PFMManager::loadPFM(disp1Path);
+            cv::Mat disp1_mask{disp1_raw == std::numeric_limits<float>::infinity()};
+            disp1_raw.setTo(0, disp1_mask);
+            
+            cv::Mat disp1_norm;
+            cv::normalize(disp1_raw, disp1_norm, 0, 255, cv::NORM_MINMAX);
+            disp1_norm.convertTo(imgPair.disp1, CV_8UC1);
 
             std::ifstream ifs(calibPath, std::ios::in);
 

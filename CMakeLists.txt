@@ -6,6 +6,8 @@ SET(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE PATH 
 
 PROJECT(stereo_reconstruction_ss22)
 
+SET(CMAKE_BUILD_TYPE Debug)
+
 SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 SET(CMAKE_CXX_EXTENSIONS OFF)
@@ -22,6 +24,8 @@ SET(HEADERS
     Utils.h
     EightPoint.h
     Reconstruction.h
+    PFMManager.h
+    PointCloud.h
 )
 
 SET(SOURCES
@@ -30,6 +34,8 @@ SET(SOURCES
     BlockMatcher.cpp
     PoseOptimizer.cpp
     Reconstruction.cpp
+    PFMManager.cpp
+    PointCloud.cpp
     main.cpp
 )
 
