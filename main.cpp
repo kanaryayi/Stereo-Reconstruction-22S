@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
 
 
 	if (SPARSE_MATCHING) {
-		FeatureDectector detector = FeatureDectector(12);
+		FeatureDectector detector = FeatureDectector(50);
 		std::cout << std::endl;
 
 #ifdef defined(ALL_SAMPLE)
@@ -81,15 +81,14 @@ int main(int argc, char** argv) {
 	std::pair<KeyPoints, KeyPoints> res = detector.findCorrespondences(specSample, USE_SURF);
 	std::cout << std::endl;
 	EightPointExecuter eightPointExecuter = EightPointExecuter(res, specSample);
-	std::pair<Rotate, Translate> validRT = eightPointExecuter.getValidRT();
-	std::pair<cv::Mat, double> lambdaGamma = eightPointExecuter.getLambdaGamma();
 
 	std::pair<Rotate, Translate> openCVRT = eightPointExecuter.tryOpenCVPiepline();
-
-	Rotate R = validRT.first;
-	Translate T = validRT.second;
-	std::cout << "R: " << R << std::endl;
-	std::cout << "T: " << T << std::endl;
+	cv::Mat R, t;
+	R = openCVRT.first;
+	t = openCVRT.second;
+	t *= (specSample.baseline * 0.001);
+	// scale of translation vector is uncertain but its norm is 1. so we have to scale it with an additional info
+	std::cout << "Absolute Translation : "<< t << std::endl; // baseline is in mm, we want to represent in meter
 
 	//cv::Mat eulerAngles = getEulerAngleByRotationMatrix(R);
 	//std::cout << eulerAngles << std::endl;

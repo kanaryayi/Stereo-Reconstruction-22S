@@ -14,14 +14,14 @@ EightPointExecuter::EightPointExecuter(std::pair<KeyPoints, KeyPoints> setPair, 
 }
 
 std::pair<Rotate, Translate> EightPointExecuter::tryOpenCVPiepline() {
-	cv::Mat R, t, mask;
-	cv::Mat E = cv::findEssentialMat(m_pointSet1, m_pointSet2, m_sample.K_img1, cv::noArray(), m_sample.K_img2, cv::noArray(), cv::RANSAC, 0.999, 1.0, mask);
-	cv::recoverPose(E, m_pointSet1, m_pointSet2, m_sample.K_img2, R, t, mask);
+	cv::Mat E, R, t, mask;
+	cv::recoverPose(m_pointSet1, m_pointSet2,m_sample.K_img1, cv::noArray(), m_sample.K_img2,cv::noArray(),E, R, t,cv::RANSAC, 0.999, 1.0, mask);
 	std::cout << "R1: " << R << std::endl;
-	std::cout << "t1: " << t << std::endl;
-	cv::recoverPose(E, m_pointSet1, m_pointSet2, m_sample.K_img2, R, t, mask);
-	std::cout << "R2: " << R << std::endl;
-	std::cout << "t2: " << t << std::endl;
+	std::cout << "t1: " << t << " norm :: "<< cv::norm(t)<<std::endl;
+	// std::cout << mask<< std::endl;
+	// cv::recoverPose(E, m_pointSet1, m_pointSet2, m_sample.K_img2, R, t, mask);
+	// std::cout << "R2: " << R << std::endl;
+	// std::cout << "t2: " << t << std::endl;
 	return std::make_pair(R, t);
 }
 

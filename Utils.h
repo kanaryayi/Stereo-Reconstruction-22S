@@ -109,7 +109,7 @@ struct ImagePair {
     float baseline;
     float doffs;
 
-    int weight;
+    int width;
     int height;
 
     int vmin;
@@ -144,7 +144,7 @@ struct ImagePair {
         new_pair.f2 = f2;
         new_pair.baseline = baseline;
         new_pair.doffs = doffs;
-        new_pair.weight = weight;
+        new_pair.width = width;
         new_pair.height = height;
         new_pair.vmin = vmin;
         new_pair.vmax = vmax;
@@ -264,7 +264,7 @@ class DataLoader
 
                 imgPair.baseline = std::stof(getAttrNumByName("baseline", lines));
                 imgPair.doffs = std::stof(getAttrNumByName("doffs", lines));
-                imgPair.weight = std::stoi(getAttrNumByName("width", lines));
+                imgPair.width = std::stoi(getAttrNumByName("width", lines));
                 imgPair.height = std::stoi(getAttrNumByName("height", lines));
                 imgPair.vmin = std::stoi(getAttrNumByName("vmin", lines));
                 imgPair.vmax = std::stoi(getAttrNumByName("vmax", lines));
