@@ -22,7 +22,7 @@ SET(HEADERS
     PoseOptimizer.h
     BlockMatcher.h
     Utils.h
-    EightPoint.h
+    FivePoint.h
     Reconstruction.h
     PFMManager.h
     PointCloud.h
@@ -31,7 +31,7 @@ SET(HEADERS
 
 SET(SOURCES
     FeatureDectector.cpp
-    EightPoint.cpp
+    FivePoint.cpp
     BlockMatcher.cpp
     PoseOptimizer.cpp
     Reconstruction.cpp
