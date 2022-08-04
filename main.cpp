@@ -7,35 +7,37 @@
 #include "PFMManager.h"
 
 #include "PointCloud.h"
+#include "DenseMatching.h"
 #include "Reconstruction.h"
 
 #include "Eigen.h"
 
-int testMeshGeneration() {
-	DataLoader dataloader = DataLoader("Middlebury_2014/Adirondack-perfect", 1, true);
-	ImagePair downsampled = dataloader.getImagePairByIndex(0)
-		.sampleDown(0.3);
+void compare_sgbm_bm() {
+    std::string name{"Umbrella-perfect"};
 
-	std::stringstream ss;
-	ss << "reconstructed.off";
+    DataLoader dataloader = DataLoader("Middlebury_2014/" + name, 1, true);
+    ImagePair sample = dataloader.getImagePairByIndex(0);
 
-	PointCloud pc{};
-	float maxDepth = 0.0;
+    DenseMatching::evaluateSGBM(sample, name, 7, 260);
+    DenseMatching::evaluateBM(sample, name, 21, 256);
 
-	cv::Mat depthMap = pc.depthMapFromDisperityMap(downsampled.disp0, downsampled.baseline,
-													downsampled.doffs, downsampled.f1, &maxDepth, false);
-	
+    PointCloud pc{};
+    float max_depth;
 
-	
-	Vertex* vertices = pc.generatePointCloud(depthMap, downsampled.img1, downsampled.K_img1, maxDepth);
+    cv::Mat depth = pc.depthMapFromDisperityMap(sample.disp0, sample.baseline, sample.doffs, sample.f1, &max_depth, true);
 
-	if (!Mesh::writeMesh(vertices, depthMap.cols, depthMap.rows, ss.str())) {
-		std::cerr << "Could not write mesh " << ss.str() << "\n";
-	}
+    cv::resize(sample.img1, sample.img1, cv::Size(0.4 * sample.img1.cols, 0.4 * sample.img1.rows), 0, 0, cv::INTER_LINEAR);
+    cv::resize(sample.disp0, sample.disp0, cv::Size(0.4 * sample.disp0.cols, 0.4 * sample.disp0.rows), 0, 0, cv::INTER_LINEAR);
+    cv::resize(depth, depth, cv::Size(0.4 * depth.cols, 0.4 * depth.rows), 0, 0, cv::INTER_LINEAR);
 
-	delete[] vertices;
+    cv::imwrite(name + "_disp_ground.png", sample.disp0);
+    cv::imwrite(name + "_img.png", sample.img1);
 
-	return 0;
+    cv::applyColorMap(sample.disp0, sample.disp0, cv::COLORMAP_JET);
+    cv::imwrite(name + "_disp_ground_jet.png", sample.disp0);
+
+    depth = 255 * depth;
+    cv::imwrite(name + "_depth_ground.png", depth);
 }
 
 

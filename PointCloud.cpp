@@ -1,5 +1,39 @@
 #include "PointCloud.h"
 
+cv::Mat PointCloud::depthMapFromNormDisperity(cv::Mat disperity, float baseline, float doffs, float focal, float* maxDepth, bool normalize) {
+    cv::Mat depth_map(disperity.size(), CV_32FC1);
+
+    int rows = depth_map.rows;
+    int cols = depth_map.cols;
+
+    for (int x = 0; x < cols; x++) {
+        for (int y = 0; y < rows; y++) {
+            float d = disperity.at<float>(y,x);
+            float depth_val = baseline * focal / (d + doffs);
+            depth_map.at<float>(y,x) = depth_val;
+        }
+    }
+
+    double min, max;
+    cv::minMaxLoc(depth_map, &min, &max);
+
+    *maxDepth = (float)max;
+
+    #ifdef POINT_CLOUD_DEBUG
+    std::cout << "[PointCloud::depthMapFromDisperityMap] Depth map minimum value " << min << "\n";
+    std::cout << "[PointCloud::depthMapFromDisperityMap] Depth map maximum value " << max << "\n";
+    #endif
+
+    if (normalize) {
+        cv::Mat depth_map_norm;
+        cv::normalize(depth_map, depth_map_norm, 0.0, 1.0, cv::NORM_MINMAX);
+        *maxDepth = 1.0;
+        return depth_map_norm;
+    }
+
+    return depth_map;
+}
+
 cv::Mat PointCloud::depthMapFromDisperityMap(cv::Mat disperity, float baseline, float doffs, float focal, float* maxDepth, bool normalize) {
     cv::Mat depth_map(disperity.size(), CV_32FC1);
 

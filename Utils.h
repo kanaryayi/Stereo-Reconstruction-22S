@@ -125,7 +125,7 @@ struct ImagePair {
         
         cv::resize(img1, img1_d, cv::Size(factor * img1.cols, factor * img1.rows),
             0, 0, cv::INTER_LINEAR);
-        cv::resize(img1, img1_d, cv::Size(factor * img1.cols, factor * img1.rows),
+        cv::resize(img2, img2_d, cv::Size(factor * img2.cols, factor * img2.rows),
             0, 0, cv::INTER_LINEAR);
         cv::resize(disp0, disp0_d, cv::Size(factor * disp0.cols, factor * disp0.rows),
             0, 0, cv::INTER_LINEAR);

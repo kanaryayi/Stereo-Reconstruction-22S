@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.6)
 
 SET(CMAKE_CONFIGURATION_TYPES Debug Release CACHE TYPE INTERNAL FORCE)
-SET(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE PATH "Path to your vcpkg")
+# SET(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE PATH "Path to your vcpkg")
 
 
 PROJECT(stereo_reconstruction_ss22)
@@ -26,6 +26,7 @@ SET(HEADERS
     Reconstruction.h
     PFMManager.h
     PointCloud.h
+    DenseMatching.h
 )
 
 SET(SOURCES
@@ -36,8 +37,8 @@ SET(SOURCES
     Reconstruction.cpp
     PFMManager.cpp
     PointCloud.cpp
-    main.cpp
-)
+    DenseMatching.cpp
+        main.cpp)
 
 add_executable(stereo_reconstruction_ss22 ${HEADERS} ${SOURCES})
 

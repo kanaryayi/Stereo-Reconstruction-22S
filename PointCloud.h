@@ -20,6 +20,8 @@ class PointCloud {
         // The computed depth map is of type CV_32FC1, this a 1-channel 32-bit floating point matrix.
         cv::Mat depthMapFromDisperityMap(cv::Mat disperity, float baseline, float doffs, float focal, float* maxDepth, bool normalize = false);
 
+        cv::Mat depthMapFromNormDisperity(cv::Mat disperity, float baseline, float doffs, float focal, float* maxDepth, bool normalize = false);
+
 
         // Generate a point cloud given a depth map in `depthMap` with the colors provided by `colorMap`.
         // Returns a pointer to an array of vertices which is the same size as the color/depth image.
