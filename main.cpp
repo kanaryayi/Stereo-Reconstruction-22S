@@ -33,7 +33,7 @@ void compare_sgbm_bm() {
     cv::imwrite(name + "_disp_ground.png", sample.disp0);
     cv::imwrite(name + "_img.png", sample.img1);
 
-    cv::applyColorMap(sample.disp0, sample.disp0, cv::COLORMAP_JET);
+	cv::applyColorMap(sample.disp0, sample.disp0, cv::COLORMAP_JET);
     cv::imwrite(name + "_disp_ground_jet.png", sample.disp0);
 
     depth = 255 * depth;
@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
 
 
 	if (SPARSE_MATCHING) {
-		FeatureDectector detector = FeatureDectector(50);
+		FeatureDectector detector = FeatureDectector(10);
 		std::cout << std::endl;
 
 #ifdef defined(ALL_SAMPLE)
@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
 	std::pair<KeyPoints, KeyPoints> res = detector.findCorrespondences(specSample, USE_SURF);
 	FivePointExecuter fivePointExecuter = FivePointExecuter(res, specSample);
 	std::pair<Rotate, Translate> openCVRT = fivePointExecuter.tryOpenCVPipeline();
-	cv::Mat R, t, lee;
+	cv::Mat R, t, R_lee, lee;
 	R = openCVRT.first;
 	t = openCVRT.second;
 	double gt_x = specSample.baseline * 0.001;
@@ -94,8 +94,8 @@ int main(int argc, char** argv) {
 	cv::Mat unitRot = (cv::Mat_<double>(3,3) << 1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);
 	std::cout << unitRot;
 	std::cout << "error in translation :"<< cv::norm(t - gt_t) << std::endl;
-	R = R - unitRot;
-	cv::Rodrigues(R,lee,cv::noArray());
+	R_lee = R - unitRot;
+	cv::Rodrigues(R_lee,lee,cv::noArray());
 	std::cout << lee << std::endl;
 	double rotationErr = cv::norm(lee);
 	std::cout << "error in rotation :" << rotationErr << std::endl;
