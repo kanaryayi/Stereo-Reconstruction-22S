@@ -83,7 +83,7 @@ std::pair<KeyPoints,KeyPoints> FeatureDectector::findCorrespondences(ImagePair i
     cv::resize(m_img, m_img, cv::Size(m_img.cols * 0.3, m_img.rows * 0.3), 0, 0, cv::INTER_LINEAR);
 
     // cv::namedWindow("SIFT_Correspondences", cv::WINDOW_AUTOSIZE);
-    cv::imshow("Correspondences" + (fm == USE_SIFT) ? "_SIFT" : ((fm == USE_ORB) ? "_ORB" : "_SURF"), m_img);
+    //cv::imshow("Correspondences" + (fm == USE_SIFT) ? "_SIFT" : ((fm == USE_ORB) ? "_ORB" : "_SURF"), m_img);
 #endif
     for (int i = 0; i < m_numPoint; i++)
     {
