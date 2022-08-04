@@ -68,7 +68,7 @@ cv::Mat PointCloud::depthMapFromDisperityMap(cv::Mat disperity, float baseline, 
     return depth_map;
 }
 
-Vertex* PointCloud::generatePointCloud(cv::Mat depthMap, cv::Mat colorMap, cv::Mat depthIntrinsicMat, float maxDepth) {
+Vertex* PointCloud::generatePointCloud(cv::Mat depthMap, cv::Mat colorMap, cv::Mat depthIntrinsicMat, cv::Mat extrinsicMat, float maxDepth) {
 
     int width = depthMap.cols;
     int height = depthMap.rows;
@@ -81,6 +81,18 @@ Vertex* PointCloud::generatePointCloud(cv::Mat depthMap, cv::Mat colorMap, cv::M
     Eigen::Matrix3f depthIntrinsic;
     depthIntrinsic << fX, 0, cX, 0, fY, cY, 0, 0, 1;
 
+    Eigen::Matrix3f extrinsicEigen;
+    extrinsicEigen << extrinsicMat.at<float>(0,0),
+                   extrinsicMat.at<float>(0,1),
+                   extrinsicMat.at<float>(0,2),
+                   extrinsicMat.at<float>(1,0),
+                   extrinsicMat.at<float>(1,1),
+                   extrinsicMat.at<float>(1,2),
+                   extrinsicMat.at<float>(2,0),
+                   extrinsicMat.at<float>(2,1),
+                   extrinsicMat.at<float>(2,2);
+
+    Eigen::Matrix3f extrinsicEigenInv = extrinsicEigen.inverse();
     Eigen::Matrix3f depthIntrinsicInv = depthIntrinsic.inverse();
     Vertex* vertices = new Vertex[width * height];
 
@@ -94,7 +106,7 @@ Vertex* PointCloud::generatePointCloud(cv::Mat depthMap, cv::Mat colorMap, cv::M
 				vertices[idx].color = Vector4uc(0, 0, 0, 0);
 			} else {
 				Eigen::Vector3f img_coords = Eigen::Vector3f(x * depth, y * depth, depth);
-				Eigen::Vector3f tmp_coords = depthIntrinsicInv * img_coords;
+				Eigen::Vector3f tmp_coords = depthIntrinsicInv * extrinsicEigenInv * img_coords;
 
 				Eigen::Vector4f world_coords = Eigen::Vector4f(tmp_coords[0], tmp_coords[1], tmp_coords[2], 1.0f);
 

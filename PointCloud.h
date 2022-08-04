@@ -27,7 +27,7 @@ class PointCloud {
         // Returns a pointer to an array of vertices which is the same size as the color/depth image.
         // The array of vertices needs to be deallocated after use.
         // `maxDepth` is the maximum depth value that is attained in the depth map.
-        Vertex* generatePointCloud(cv::Mat depthMap, cv::Mat colorMap, cv::Mat depthIntrinsicMat, float maxDepth = 1.0);
+        Vertex* generatePointCloud(cv::Mat depthMap, cv::Mat colorMap, cv::Mat depthIntrinsicMat, cv::Mat extrinsicMat, float maxDepth = 1.0);
 };
 
 #endif
