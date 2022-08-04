@@ -1,5 +1,5 @@
 #include "FeatureDectector.h"
-#include "EightPoint.h"
+#include "FivePoint.h"
 #include "PoseOptimizer.h"
 #include "BlockMatcher.h"
 #include "Utils.h"
@@ -80,29 +80,38 @@ int main(int argc, char** argv) {
 #elif defined(SPEC_SAMPLE)
 	ImagePair specSample = dataLoader.getSpecificSample("Pipe");
 	std::cout << "DataLoader >> " << specSample.path << " is selected." << std::endl;
+	
 	std::pair<KeyPoints, KeyPoints> res = detector.findCorrespondences(specSample, USE_SURF);
-	std::cout << std::endl;
-	EightPointExecuter eightPointExecuter = EightPointExecuter(res, specSample);
-
-	std::pair<Rotate, Translate> openCVRT = eightPointExecuter.tryOpenCVPiepline();
-	cv::Mat R, t;
+	FivePointExecuter fivePointExecuter = FivePointExecuter(res, specSample);
+	std::pair<Rotate, Translate> openCVRT = fivePointExecuter.tryOpenCVPipeline();
+	cv::Mat R, t, lee;
 	R = openCVRT.first;
 	t = openCVRT.second;
-	t *= (specSample.baseline * 0.001);
+	double gt_x = specSample.baseline * 0.001;
+	t *= gt_x;
+	cv::Mat gt_t = ( cv::Mat_<double>(3,1) << 0.0,0.0, gt_x);
+
+	cv::Mat unitRot = (cv::Mat_<double>(3,3) << 1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);
+	std::cout << unitRot;
+	std::cout << "error in translation :"<< cv::norm(t - gt_t) << std::endl;
+	R = R - unitRot;
+	cv::Rodrigues(R,lee,cv::noArray());
+	std::cout << lee << std::endl;
+	double rotationErr = cv::norm(lee);
+	std::cout << "error in rotation :" << rotationErr << std::endl;
+
 	// scale of translation vector is uncertain but its norm is 1. so we have to scale it with an additional info
 	std::cout << "Absolute Translation : "<< t << std::endl; // baseline is in mm, we want to represent in meter
+	cv::Mat R1, R2, P1, P2 , Q, map1, map2, img1_rec, img2_rec;
+	cv::Size size(specSample.width,specSample.height); 
 
-	//cv::Mat eulerAngles = getEulerAngleByRotationMatrix(R);
-	//std::cout << eulerAngles << std::endl;
-	//std::cout << getRoationMatrixByEulerAngle(eulerAngles) << std::endl;
+	// rectify
+	cv::stereoRectify(specSample.K_img1, cv::noArray(),specSample.K_img2,cv::noArray(),size,R,t,R1,R2,P1,P2,Q,1024,-1.0,size,0,0);
+	cv::initUndistortRectifyMap(specSample.K_img1,cv::noArray(),R1,specSample.K_img1,size,CV_32FC1, map1, map2);
 
-	//std::cout << std::endl;
-
-	// Really bad result Why?
-	// PoseOptimizer poseOptimizer = PoseOptimizer();
-	// poseOptimizer.optimizeRT(openCVRT, lambdaGamma, res, specSample);
-
-	// poseOptimizer.optimizeRT(validRT, lambdaGamma, res, specSample);
+	cv::remap(specSample.img1,img1_rec,map1,map2,cv::INTER_LINEAR,0,0);
+	cv::initUndistortRectifyMap(specSample.K_img2,cv::noArray(),R2,specSample.K_img2,size,CV_32FC1, map1, map2);	
+	cv::remap(specSample.img2,img2_rec,map1,map2,cv::INTER_LINEAR,0,0);
 
 	} else if (DENSE_MATCHING) {
 		ImagePair specSample = dataLoader.getSpecificSample("Pipe");
@@ -119,7 +128,6 @@ int main(int argc, char** argv) {
 	std::cerr << "MAIN >> Nothing to do, check your SAMPLE Marcos."
 #endif
 
-	testMeshGeneration();
 
 	return 0;
 }
