@@ -50,6 +50,6 @@ The project folder should look like as following.
 └── README.md
 ```
 ## Members
-- Yigit Burdurlu (03722506)
-- Sebastian Bauer (03764577)
-- Chang Luo (03759570)
+- Yigit Burdurlu 
+- Sebastian Bauer 
+- Chang Luo
